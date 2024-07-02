@@ -108,11 +108,9 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
                                         .append("arg[")
                                         .append(ix)
                                         .append(']')
-                                    if (stringResolved.isAssignableFrom(it)) {
+                                    if (stringResolved.isAssignableFrom(it))
                                         sb.append(".toString()")
-                                        logger.warn("String")
-                                    } else if (numberResolved.isAssignableFrom(it)) {
-                                        logger.warn("Number")
+                                    else if (numberResolved.isAssignableFrom(it))
                                         sb.append(
                                             when {
                                                 longResolved.isAssignableFrom(it) -> ".toInteger()"
@@ -124,27 +122,28 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
                                                 else -> throw Exception("Not supported type")
                                             }
                                         )
-
-                                    } else if (booleanResolved.isAssignableFrom(it))
-                                        logger.warn("Boolean")
-                                    else if (mapResolved.isAssignableFrom(it))
-                                        logger.warn("Map")
-                                    else if (classResolved.isAssignableFrom(it))
-                                        logger.warn("Class")
-                                    else logger.warn("JObject")
+                                    else if (booleanResolved.isAssignableFrom(it))
+                                        sb.append(".toBoolean()")
+                                    else sb.append(".toJavaObject()")
                                     sb.toString()
                                 }
                                     .joinToString(", ")
                                 if (unitResolved.isAssignableFrom(function.returnType!!.resolve()))
                                     sb.appendLine(
-                                        """selFn = { 
-                                    |    ${function.qualifiedName!!.asString()}($invStr)
-                                    |    emptyList<Nothing>() 
+                                        """
+                                    |if(arg.size >= ${minimumRequiredParameters}) {
+                                    |   selFn = { 
+                                    |      ${function.qualifiedName!!.asString()}($invStr)
+                                    |      emptyList<Nothing>() 
+                                    |   }
                                     |}""".trimMargin()
                                     )
                                 else sb.appendLine(
-                                    """selFn = { 
-                                    |    listOf(${function.qualifiedName!!.asString()}($invStr)) 
+                                    """
+                                    |if(arg.size >= ${minimumRequiredParameters}) {
+                                    |   selFn = { 
+                                    |       listOf(${function.qualifiedName!!.asString()}($invStr))
+                                    |   }
                                     |}""".trimMargin()
                                 )
 
