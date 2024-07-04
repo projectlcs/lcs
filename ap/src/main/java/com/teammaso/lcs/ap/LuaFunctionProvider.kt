@@ -128,24 +128,28 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
                                     sb.toString()
                                 }
                                     .joinToString(", ")
-                                if (unitResolved.isAssignableFrom(function.returnType!!.resolve()))
-                                    sb.appendLine(
+
+                                sb.appendLine("""if(arg.size >= ${minimumRequiredParameters}) {
+                                |   var score = 0
+                                |   // TODO: score calculation
+                                |   
+                                |   if(score > sel) {
+                                |       sel = score
+                                """.trimMargin())
+                                    .appendLine(
+                                    if (unitResolved.isAssignableFrom(function.returnType!!.resolve()))
                                         """
-                                    |if(arg.size >= ${minimumRequiredParameters}) {
-                                    |   selFn = { 
-                                    |      ${function.qualifiedName!!.asString()}($invStr)
-                                    |      emptyList<Nothing>() 
-                                    |   }
-                                    |}""".trimMargin()
-                                    )
-                                else sb.appendLine(
-                                    """
-                                    |if(arg.size >= ${minimumRequiredParameters}) {
-                                    |   selFn = { 
-                                    |       listOf(${function.qualifiedName!!.asString()}($invStr))
-                                    |   }
-                                    |}""".trimMargin()
+                                |       selFn = {
+                                |          ${function.qualifiedName!!.asString()}($invStr)
+                                |          emptyList<Nothing>()
+                                |       }""".trimMargin()
+                                    else """
+                                |       selFn = {
+                                |           listOf(${function.qualifiedName!!.asString()}($invStr))
+                                |       }""".trimMargin()
                                 )
+                                    .appendLine("    }")
+                                    .appendLine("}")
 
                                 val fn = functions.getOrPut(fnName) { mutableListOf() }
                                 fn.add(sb.toString())
