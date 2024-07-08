@@ -96,12 +96,12 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
 
                                 if ((function.parentDeclaration as? KSClassDeclaration)?.classKind != ClassKind.OBJECT)
                                     throw Exception("Lua function must inside single tone object")
-                                logger.warn("Visit ${function.qualifiedName?.asString()} -> lua::${fnName}")
+                                logger.info("Visit ${function.qualifiedName?.asString()} -> lua::${fnName}")
 
                                 val ptResolved = function.parameters.map { it.type.resolve() }
                                 val minimumRequiredParameters =
                                     ptResolved.indexOfLast { !it.isMarkedNullable } + 1
-                                logger.warn("Min arg: $minimumRequiredParameters")
+                                logger.info("Min arg: $minimumRequiredParameters")
 
                                 val invStr = ptResolved.mapIndexed { ix, it ->
                                     val sb = StringBuilder()
