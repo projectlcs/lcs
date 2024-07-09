@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.provider.Settings
+import android.util.Log
 import com.teammaso.lcs.LuaService
 import com.teammaso.lcs.ap.LuaFunction
 
@@ -32,21 +33,19 @@ object DND {
          See also: https://developer.android.com/about/versions/15/behavior-changes-15#dnd-changes
          */
         notService?.let {
-            if (VERSION.SDK_INT <= VERSION_CODES.UPSIDE_DOWN_CAKE)
-                it.setInterruptionFilter(
-                    if (newValue)
-                        NotificationManager.INTERRUPTION_FILTER_ALL
-                    else NotificationManager.INTERRUPTION_FILTER_NONE
-                )
-            else {
-                TODO("Android 15 not supported")
-            }
+            if (VERSION.SDK_INT > VERSION_CODES.UPSIDE_DOWN_CAKE)
+                Log.d("DND", "Android 15 can break some features")
+            it.setInterruptionFilter(
+                if (newValue)
+                    NotificationManager.INTERRUPTION_FILTER_NONE
+                else NotificationManager.INTERRUPTION_FILTER_ALL
+            )
         }
     }
 
     @LuaFunction(name = "get_do_not_disturb")
     fun getDND(): Boolean {
         val notService = grantNotificationService()
-        return notService!!.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL
+        return notService!!.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_NONE
     }
 }

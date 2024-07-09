@@ -1,11 +1,13 @@
 package com.teammaso.lcs
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Context
 import android.view.accessibility.AccessibilityEvent
 
 class LuaService: AccessibilityService() {
     companion object {
-        var INSTANCE: LuaService? = null
+        // Use context instead of its exact service for debugging purpose
+        var INSTANCE: Context? = null
     }
 
     val lua = LuaHandler.createInstance()
