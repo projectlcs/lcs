@@ -123,7 +123,7 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
                                             }
                                         )
                                     else if (booleanResolved.isAssignableFrom(it))
-                                        sb.append(".toBoolean()")
+                                        sb.append(".toJavaObject() as Boolean")
                                     else sb.append(".toJavaObject()")
                                     sb.toString()
                                 }
