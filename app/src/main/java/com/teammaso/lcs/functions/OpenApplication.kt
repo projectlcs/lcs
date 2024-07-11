@@ -10,15 +10,17 @@ object OpenApplication {
     @LuaFunction(name = "open_app")
     fun openApp(pkg: String) {
         val service = LuaService.INSTANCE!!
-        val li = service.packageManager?.getLaunchIntentForPackage(pkg)
-        li?.let {
-            service.startActivity(it)
+        service.packageManager?.getLaunchIntentForPackage(pkg)?.apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            service.startActivity(this)
         } ?: Log.w("OpenApplication", "Application $pkg not found")
     }
 
     @LuaFunction(name = "open_url")
     fun openUrl(url: String) {
         val service = LuaService.INSTANCE!!
-        service.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        service.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
     }
 }

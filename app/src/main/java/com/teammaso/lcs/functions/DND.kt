@@ -18,8 +18,9 @@ object DND {
 
         // request permission
         if (notService?.isNotificationPolicyAccessGranted != true) {
-            val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-            service.startActivity(intent)
+            service.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            })
         }
 
         return notService

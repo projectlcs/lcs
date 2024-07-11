@@ -1,6 +1,9 @@
 package com.teammaso.lcs
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,9 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.teammaso.lcs.ap.LuaFunction
 import com.teammaso.lcs.ui.theme.LCSTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,9 +33,17 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        GlobalScope.launch (Dispatchers.Default) {
-            LuaHandler.createInstance()
-            Log.d("test", "Finished!!")
+        startForegroundService(Intent(this, LuaService::class.java))
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        // check for overlay permission
+        if (!Settings.canDrawOverlays(this)) {
+            val intent =  Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName"))
+            startActivity(intent)
         }
     }
 
