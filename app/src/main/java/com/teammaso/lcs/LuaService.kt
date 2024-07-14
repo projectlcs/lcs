@@ -35,6 +35,7 @@ class LuaService: Service() {
         INSTANCE = this
 
         lua.load("set_do_not_disturb(not get_do_not_disturb())")
+        //lua.load("create_alarm(19,40)")
         lua.pCall(0,0)
     }
 
