@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -32,8 +33,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
-        startForegroundService(Intent(this, LuaService::class.java))
     }
 
     override fun onStart() {
@@ -44,7 +43,9 @@ class MainActivity : ComponentActivity() {
             val intent =  Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:$packageName"))
             startActivity(intent)
+            Toast.makeText(this, "Restart application after enabling setting", Toast.LENGTH_LONG).show()
         }
+        else applicationContext.startForegroundService(Intent(this, LuaService::class.java))
     }
 
     object A {
