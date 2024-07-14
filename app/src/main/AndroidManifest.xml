@@ -21,7 +21,7 @@
         android:theme="@style/Theme.LCS"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name="net.projectlcs.lcs.MainActivity"
             android:exported="true"
             android:label="@string/title_activity_main"
             android:theme="@style/Theme.LCS">
@@ -31,7 +31,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".LuaService" android:foregroundServiceType="specialUse" />
+        <service android:name="net.projectlcs.lcs.LuaService" android:foregroundServiceType="specialUse" />
     </application>
 
 </manifest>

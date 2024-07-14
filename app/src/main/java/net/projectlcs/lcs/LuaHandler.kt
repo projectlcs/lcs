@@ -1,6 +1,6 @@
-package com.teammaso.lcs
+package net.projectlcs.lcs
 
-import com.teammaso.lcs.lua.LuaGenerated
+import net.projectlcs.lcs.lua.LuaGenerated
 import party.iroiro.luajava.AbstractLua
 import party.iroiro.luajava.luajit.LuaJit
 

@@ -1,10 +1,10 @@
-package com.teammaso.lcs.functions
+package net.projectlcs.lcs.functions
 
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import com.teammaso.lcs.LuaService
-import com.teammaso.lcs.ap.LuaFunction
+import net.projectlcs.lcs.LuaService
+import net.projectlcs.lcs.ap.LuaFunction
 
 object OpenApplication {
     @LuaFunction(name = "open_app")

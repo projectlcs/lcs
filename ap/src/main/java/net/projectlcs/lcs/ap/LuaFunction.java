@@ -1,4 +1,4 @@
-package com.teammaso.lcs.ap;
+package net.projectlcs.lcs.ap;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;

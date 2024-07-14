@@ -1,15 +1,9 @@
-package com.teammaso.lcs.functions
+package net.projectlcs.lcs.functions
 
-import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.os.Message
 import android.provider.AlarmClock
-import android.provider.AlarmClock.ACTION_SET_ALARM
-import androidx.core.content.ContextCompat.startActivity
-import com.teammaso.lcs.LuaService
-import com.teammaso.lcs.ap.LuaFunction
-import android.util.Log
+import net.projectlcs.lcs.LuaService
+import net.projectlcs.lcs.ap.LuaFunction
 
 object Alarms {
     @LuaFunction(name = "create_alarm")

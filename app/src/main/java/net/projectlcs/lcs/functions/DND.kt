@@ -1,4 +1,4 @@
-package com.teammaso.lcs.functions
+package net.projectlcs.lcs.functions
 
 import android.app.NotificationManager
 import android.content.Context
@@ -7,8 +7,8 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.provider.Settings
 import android.util.Log
-import com.teammaso.lcs.LuaService
-import com.teammaso.lcs.ap.LuaFunction
+import net.projectlcs.lcs.LuaService
+import net.projectlcs.lcs.ap.LuaFunction
 
 
 object DND {

@@ -1,17 +1,11 @@
-package com.teammaso.lcs
+package net.projectlcs.lcs
 
-import android.accessibilityservice.AccessibilityService
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import android.os.IInterface
-import android.os.Parcel
-import android.view.accessibility.AccessibilityEvent
-import java.io.FileDescriptor
 
 class LuaService: Service() {
     companion object {

@@ -1,4 +1,4 @@
-package com.teammaso.lcs.ui.theme
+package net.projectlcs.lcs.theme
 
 import androidx.compose.ui.graphics.Color
 

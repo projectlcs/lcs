@@ -1,4 +1,4 @@
-package com.teammaso.lcs
+package net.projectlcs.lcs
 
 import android.content.Intent
 import android.net.Uri
@@ -16,8 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.teammaso.lcs.ap.LuaFunction
-import com.teammaso.lcs.ui.theme.LCSTheme
+import net.projectlcs.lcs.ap.LuaFunction
+import net.projectlcs.lcs.theme.LCSTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

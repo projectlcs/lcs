@@ -1,6 +1,6 @@
-package com.teammaso.lcs
+package net.projectlcs.lcs
 
-import com.teammaso.lcs.ap.LuaFunction
+import net.projectlcs.lcs.ap.LuaFunction
 import org.junit.Test
 
 import org.junit.Assert.*

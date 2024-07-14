@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.teammaso.lcs"
+    namespace = "net.projectlcs.lcs"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.teammaso.lcs"
+        applicationId = "net.projectlcs.lcs"
         minSdk = 30
         targetSdk = 35
         versionCode = 1

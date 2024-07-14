@@ -1,13 +1,11 @@
 @file:OptIn(KspExperimental::class)
 
-package com.teammaso.lcs.ap
+package net.projectlcs.lcs.ap
 
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getClassDeclarationByName
-import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
-import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
@@ -19,7 +17,7 @@ import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.validate
-import kotlin.reflect.KFunction
+import net.projectlcs.lcs.ap.LuaFunction
 
 
 class LuaFunctionProcessorProvider : SymbolProcessorProvider {
@@ -165,12 +163,12 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
                 super.finish()
                 val file = environment.codeGenerator.createNewFile(
                     dependencies = Dependencies(true, *(files).toTypedArray()),
-                    packageName = "com.teammaso.lcs.lua",
+                    packageName = "net.projectlcs.lcs.lua",
                     fileName = "LuaGenerated"
                 ).writer()
 
                 file.write("""
-package com.teammaso.lcs.lua
+package net.projectlcs.lcs.lua
 
 import party.iroiro.luajava.Lua
 import party.iroiro.luajava.LuaException
