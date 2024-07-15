@@ -15,12 +15,11 @@ import net.projectlcs.lcs.ap.LuaProvider
 @LuaProvider
 object DND: PermissionProvider {
     override fun verifyPermission(): Boolean {
-        val service = LuaService.INSTANCE!!
-        val notService = service.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+        val notService = retrieveNotificationService()
 
         // request permission
         if (notService?.isNotificationPolicyAccessGranted != true) {
-            service.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
+            LuaService.INSTANCE!!.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             })
             return false
@@ -28,14 +27,14 @@ object DND: PermissionProvider {
         return true
     }
 
-    private fun grantNotificationService(): NotificationManager? {
+    private fun retrieveNotificationService(): NotificationManager? {
         val service = LuaService.INSTANCE!!
         return service.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
     }
 
     @LuaFunction(name = "set_do_not_disturb")
     fun setDND(newValue: Boolean) {
-        val notService = grantNotificationService()
+        val notService = retrieveNotificationService()
         /*
          TODO: Android 15(SDK 35) contains critical change at this API
          See also: https://developer.android.com/about/versions/15/behavior-changes-15#dnd-changes
@@ -53,7 +52,7 @@ object DND: PermissionProvider {
 
     @LuaFunction(name = "get_do_not_disturb")
     fun getDND(): Boolean {
-        val notService = grantNotificationService()
+        val notService = retrieveNotificationService()
         return notService!!.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_NONE
     }
 }

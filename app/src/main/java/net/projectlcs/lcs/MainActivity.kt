@@ -47,25 +47,6 @@ class MainActivity : ComponentActivity() {
         }
         else applicationContext.startForegroundService(Intent(this, LuaService::class.java))
     }
-
-    object A {
-        @LuaFunction
-        fun test2() {
-            Log.w("test", "from test2")
-        }
-    }
-
-    companion object {
-        @LuaFunction(name = "hello")
-        fun test(x: Double, s: String): Int {
-            Log.w("test", "from test")
-            return 1
-        }
-        @LuaFunction(name = "test2")
-        fun test2(x: Double): Double {
-            return 1.0
-        }
-    }
 }
 
 @Composable
