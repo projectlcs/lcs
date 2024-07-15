@@ -5,7 +5,9 @@ import android.net.Uri
 import android.util.Log
 import net.projectlcs.lcs.LuaService
 import net.projectlcs.lcs.ap.LuaFunction
+import net.projectlcs.lcs.ap.LuaProvider
 
+@LuaProvider
 object OpenApplication {
     @LuaFunction(name = "open_app")
     fun openApp(pkg: String) {

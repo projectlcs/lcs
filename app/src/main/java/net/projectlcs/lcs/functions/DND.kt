@@ -9,10 +9,12 @@ import android.provider.Settings
 import android.util.Log
 import net.projectlcs.lcs.LuaService
 import net.projectlcs.lcs.ap.LuaFunction
+import net.projectlcs.lcs.ap.LuaProvider
 
 
-object DND {
-    private fun grantNotificationService(): NotificationManager? {
+@LuaProvider
+object DND: PermissionProvider {
+    override fun verifyPermission(): Boolean {
         val service = LuaService.INSTANCE!!
         val notService = service.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
 
@@ -21,9 +23,14 @@ object DND {
             service.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             })
+            return false
         }
+        return true
+    }
 
-        return notService
+    private fun grantNotificationService(): NotificationManager? {
+        val service = LuaService.INSTANCE!!
+        return service.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
     }
 
     @LuaFunction(name = "set_do_not_disturb")

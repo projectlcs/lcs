@@ -4,7 +4,9 @@ import android.content.Intent
 import android.provider.AlarmClock
 import net.projectlcs.lcs.LuaService
 import net.projectlcs.lcs.ap.LuaFunction
+import net.projectlcs.lcs.ap.LuaProvider
 
+@LuaProvider
 object Alarms {
     @LuaFunction(name = "create_alarm")
     /*https://developer.android.com/reference/kotlin/android/provider/AlarmClock

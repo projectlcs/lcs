@@ -1,9 +1,3 @@
-package net.projectlcs.lcs.ap;
+package net.projectlcs.lcs.ap
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
-
-@Target(ElementType.METHOD)
-public @interface LuaFunction {
-    String name() default "!";
-}
+annotation class LuaFunction(val name: String = "!")
