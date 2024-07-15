@@ -144,14 +144,14 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
                                             """.trimMargin())
                                             if(unitResolved.isAssignableFrom(fn.returnType!!.resolve())) {
                                                 if(isPermissionProvider)
-                                                    sb.appendLine("if(${classDeclaration.qualifiedName!!.asString()}.verifyPermission())")
+                                                    sb.appendLine("if(${classDeclaration.qualifiedName!!.asString()}.verifyPermission(true))")
                                                 sb.appendLine("${fn.qualifiedName!!.asString()}($invStr)")
                                                     .appendLine("emptyList<Nothing>()")
                                                     .appendLine("}")
                                             }
                                             else {
                                                 if(isPermissionProvider)
-                                                    sb.appendLine("if(${classDeclaration.qualifiedName!!.asString()}.verifyPermission())")
+                                                    sb.appendLine("if(${classDeclaration.qualifiedName!!.asString()}.verifyPermission(true))")
                                                 sb.appendLine("listOf(${fn.qualifiedName!!.asString()}($invStr))")
                                                 if(isPermissionProvider)
                                                     sb.appendLine("else emptyList<Nothing>()")

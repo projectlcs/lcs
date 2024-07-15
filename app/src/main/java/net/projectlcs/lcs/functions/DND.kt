@@ -14,17 +14,18 @@ import net.projectlcs.lcs.ap.LuaProvider
 
 @LuaProvider
 object DND: PermissionProvider {
-    override fun verifyPermission(): Boolean {
+    override fun verifyPermission(tryRequest: Boolean): Boolean {
         val notService = retrieveNotificationService()
 
         // request permission
-        if (notService?.isNotificationPolicyAccessGranted != true) {
-            LuaService.INSTANCE!!.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            })
-            return false
+        return if (notService?.isNotificationPolicyAccessGranted != true) {
+            if(tryRequest)
+                LuaService.INSTANCE!!.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                })
+            false
         }
-        return true
+        else true
     }
 
     private fun retrieveNotificationService(): NotificationManager? {
