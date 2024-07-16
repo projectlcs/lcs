@@ -72,6 +72,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(kotlin("reflect"))
+    implementation(libs.kotlinx.coroutines.android)
 
     // https://github.com/gradle/gradle/issues/26468
     // noinspection UseTomlInstead, they don't support artifact with classifier

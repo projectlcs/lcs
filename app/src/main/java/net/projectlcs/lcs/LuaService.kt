@@ -6,6 +6,12 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.util.concurrent.CountDownLatch
 
 class LuaService: Service() {
     companion object {
@@ -14,6 +20,18 @@ class LuaService: Service() {
     }
 
     val lua = LuaHandler.createInstance()
+
+    val luaDispatcher = Dispatchers.Default.limitedParallelism(2, "lua")
+
+    // maybe there are better solution...
+    inline fun withSuspend(crossinline fn: suspend CoroutineScope.() -> Unit) {
+        val latch = CountDownLatch(1)
+        GlobalScope.launch(luaDispatcher) {
+            fn()
+            latch.countDown()
+        }
+        latch.await()
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -28,14 +46,19 @@ class LuaService: Service() {
 
         INSTANCE = this
 
-        lua.load("set_do_not_disturb(not get_do_not_disturb())")
-        //lua.load("create_alarm(19,40)")
-        lua.pCall(0,0)
+        GlobalScope.launch(luaDispatcher) {
+            lua.load("""
+                |set_do_not_disturb(not get_do_not_disturb())
+            """.trimMargin())
+            lua.pCall(0, 0)
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         INSTANCE = null
+
+        Log.d("onDestroy", "service destroyed")
 
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
