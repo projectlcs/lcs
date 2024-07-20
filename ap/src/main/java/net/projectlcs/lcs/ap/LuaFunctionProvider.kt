@@ -7,7 +7,6 @@ import com.google.devtools.ksp.containingFile
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.getDeclaredFunctions
-import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
@@ -17,10 +16,8 @@ import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
-import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.validate
-import net.projectlcs.lcs.ap.LuaFunction
 
 
 class LuaBindingException(message: String): Exception(message)
@@ -81,6 +78,9 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
                 val permissionProviderResolved by lazy {
                     resolver.getClassDeclarationByName("net.projectlcs.lcs.functions.PermissionProvider")!!.asStarProjectedType()
                 }
+                val luaValueResolved by lazy {
+                    resolver.getClassDeclarationByName("party.iroiro.luajava.value.LuaValue")!!.asStarProjectedType()
+                }
 
                 resolver.getSymbolsWithAnnotation(luaProviderAnnotationName).let { providers ->
                     val ret = providers.filter { !it.validate() }
@@ -129,6 +129,8 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
                                                     )
                                                 else if (booleanResolved.isAssignableFrom(it))
                                                     sb.append(".toJavaObject() as Boolean")
+                                                else if (luaValueResolved.isAssignableFrom(it))
+                                                    ;
                                                 else sb.append(".toJavaObject()")
                                                 sb.toString()
                                             }
