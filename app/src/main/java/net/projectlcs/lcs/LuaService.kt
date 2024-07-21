@@ -10,6 +10,7 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.CountDownLatch
 
@@ -46,11 +47,20 @@ class LuaService: Service() {
 
         INSTANCE = this
 
+        lua.load(resources.assets.open("main.lua").readBytes().decodeToString())
+        lua.pCall(0, 0)
+
         GlobalScope.launch(luaDispatcher) {
-            lua.load("""
-                |set_do_not_disturb(not get_do_not_disturb())
-            """.trimMargin())
-            lua.pCall(0, 0)
+            lua.getGlobal("register_task")
+            lua.push(resources.assets.open("test.lua").readBytes().decodeToString())
+            lua.push("test")
+            lua.pCall(2, 0)
+
+            while(true) {
+                lua.getGlobal("loop")
+                lua.pCall(0, 0)
+                delay(100)
+            }
         }
     }
 
