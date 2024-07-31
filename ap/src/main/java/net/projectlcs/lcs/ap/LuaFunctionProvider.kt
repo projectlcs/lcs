@@ -81,6 +81,9 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
                 val luaValueResolved by lazy {
                     resolver.getClassDeclarationByName("party.iroiro.luajava.value.LuaValue")!!.asStarProjectedType()
                 }
+                val coroutineResolved by lazy {
+                    resolver.getClassDeclarationByName("net.projectlcs.lcs.functions.CoroutineProvider.LuaCoroutineIntegration")!!.asStarProjectedType()
+                }
 
                 resolver.getSymbolsWithAnnotation(luaProviderAnnotationName).let { providers ->
                     val ret = providers.filter { !it.validate() }
@@ -135,6 +138,10 @@ class LuaFunctionProcessorProvider : SymbolProcessorProvider {
                                                 sb.toString()
                                             }
                                                 .joinToString(", ")
+
+                                            val returnType = fn.returnType!!.resolve()
+                                            if(returnType.isAssignableFrom(coroutineResolved))
+                                                logger.error("Coroutine is WIP")
 
                                             sb.appendLine("""if(arg.size >= ${minimumRequiredParameters}) {
                                             |   var score = 0
