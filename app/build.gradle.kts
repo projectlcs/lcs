@@ -1,3 +1,5 @@
+import java.util.Locale
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -49,12 +51,14 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    sourceSets["main"].assets {
+        srcDirs("build/generated/ksp/debug/resources")
+    }
 }
 
 dependencies {
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -94,5 +98,12 @@ kotlin {
     }
     sourceSets.test {
         kotlin.srcDir("build/generated/ksp/test/kotlin")
+    }
+}
+
+project.afterEvaluate {
+    android.applicationVariants.forEach { variant ->
+        val variantName = variant.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() }
+        tasks.named("merge${variantName}Assets").orNull!!.mustRunAfter("ksp${variantName}Kotlin")
     }
 }
