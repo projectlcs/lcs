@@ -1,4 +1,4 @@
-package net.projectlcs.lcs.functions
+package net.projectlcs.lcs.functions.impl
 
 import android.content.Intent
 import android.net.Uri

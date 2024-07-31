@@ -1,4 +1,4 @@
-package net.projectlcs.lcs.functions
+package net.projectlcs.lcs.functions.impl
 
 import android.app.NotificationManager
 import android.content.Context
@@ -10,6 +10,7 @@ import android.util.Log
 import net.projectlcs.lcs.LuaService
 import net.projectlcs.lcs.ap.LuaFunction
 import net.projectlcs.lcs.ap.LuaProvider
+import net.projectlcs.lcs.functions.PermissionProvider
 
 
 @LuaProvider

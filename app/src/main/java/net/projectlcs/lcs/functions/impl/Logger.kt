@@ -1,4 +1,4 @@
-package net.projectlcs.lcs.functions
+package net.projectlcs.lcs.functions.impl
 
 import android.util.Log
 import net.projectlcs.lcs.ap.LuaFunction

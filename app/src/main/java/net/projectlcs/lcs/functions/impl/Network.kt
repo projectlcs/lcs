@@ -1,4 +1,4 @@
-package net.projectlcs.lcs.functions
+package net.projectlcs.lcs.functions.impl
 
 import net.projectlcs.lcs.ap.LuaProvider
 
