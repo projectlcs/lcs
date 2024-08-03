@@ -1,6 +1,6 @@
 package net.projectlcs.lcs
 
-import net.projectlcs.lcs.ap.LuaFunction
+import me.ddayo.aris.luagen.LuaFunction
 import org.junit.Test
 
 import org.junit.Assert.*

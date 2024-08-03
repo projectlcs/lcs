@@ -7,9 +7,9 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.provider.Settings
 import android.util.Log
+import me.ddayo.aris.luagen.LuaFunction
+import me.ddayo.aris.luagen.LuaProvider
 import net.projectlcs.lcs.LuaService
-import net.projectlcs.lcs.ap.LuaFunction
-import net.projectlcs.lcs.ap.LuaProvider
 import net.projectlcs.lcs.functions.PermissionProvider
 
 

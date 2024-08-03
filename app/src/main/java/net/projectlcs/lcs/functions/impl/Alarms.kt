@@ -2,9 +2,9 @@ package net.projectlcs.lcs.functions.impl
 
 import android.content.Intent
 import android.provider.AlarmClock
+import me.ddayo.aris.luagen.LuaFunction
+import me.ddayo.aris.luagen.LuaProvider
 import net.projectlcs.lcs.LuaService
-import net.projectlcs.lcs.ap.LuaFunction
-import net.projectlcs.lcs.ap.LuaProvider
 
 @LuaProvider
 object Alarms {

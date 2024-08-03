@@ -30,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import net.projectlcs.lcs.ap.LuaFunction
 import net.projectlcs.lcs.theme.LCSTheme
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

@@ -5,6 +5,8 @@ package net.projectlcs.lcs.functions
 interface PermissionProvider {
     /**
      * @param tryRequest true if to open permission request window
+     *
+     * TODO: rewrite using coroutine
      */
     fun verifyPermission(tryRequest: Boolean): Boolean = true
 }

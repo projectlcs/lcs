@@ -7,12 +7,11 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.concurrent.CountDownLatch
+import party.iroiro.luajava.LuaException
 
 class LuaService: Service() {
     companion object {
@@ -23,16 +22,6 @@ class LuaService: Service() {
     val lua = LuaHandler.createInstance()
 
     val luaDispatcher = Dispatchers.Default.limitedParallelism(2, "lua")
-
-    // maybe there are better solution...
-    inline fun withSuspend(crossinline fn: suspend CoroutineScope.() -> Unit) {
-        val latch = CountDownLatch(1)
-        GlobalScope.launch(luaDispatcher) {
-            fn()
-            latch.countDown()
-        }
-        latch.await()
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -47,10 +36,12 @@ class LuaService: Service() {
 
         INSTANCE = this
 
-        lua.load(resources.assets.open("main.lua").readBytes().decodeToString())
-        lua.pCall(0, 0)
-
         GlobalScope.launch(luaDispatcher) {
+            lua.load(resources.assets.open("main.lua").readBytes().decodeToString())
+            lua.pCall(0, 0)
+            lua.load(resources.assets.open("main_gen.lua").readBytes().decodeToString())
+            lua.pCall(0, 0)
+
             lua.getGlobal("register_task")
             lua.push(resources.assets.open("test.lua").readBytes().decodeToString())
             lua.push("test")
@@ -58,7 +49,11 @@ class LuaService: Service() {
 
             while(true) {
                 lua.getGlobal("loop")
-                lua.pCall(0, 0)
+                try {
+                    lua.pCall(0, 0)
+                } catch(e: LuaException) {
+                    Log.e("LUA", e.message ?: "null message")
+                }
                 delay(100)
             }
         }

@@ -1,7 +1,6 @@
 package net.projectlcs.lcs
 
-import net.projectlcs.lcs.functions.impl.Laboratory
-import net.projectlcs.lcs.lua.LuaGenerated
+import me.ddayo.aris.gen.LuaGenerated
 import party.iroiro.luajava.AbstractLua
 import party.iroiro.luajava.luajit.LuaJit
 
@@ -13,13 +12,6 @@ object LuaHandler {
         lua.openLibraries()
 
         LuaGenerated.initLua(lua)
-
-        // TODO: This is only for testing purpose. remove on future commit
-        lua.push { lua ->
-            lua.pushJavaObject(Laboratory.test())
-            1
-        }
-        lua.setGlobal("kt_test_kt1")
 
         return lua
     }

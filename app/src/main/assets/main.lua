@@ -47,35 +47,3 @@ function loop()
         end
     end
 end
-
-
-
--- test
-function kt_test(task, ...)
-    local as_table = { ... }
-    local table_size = #as_table
-    local score = -1
-    local sel_fn = function() error("No matching argument") end
-
-    if table_size >= 0 then -- check argument
-        -- TODO: score check
-        local task_score = 0
-
-        if task_score >= score then
-            score = task_score
-
-            sel_fn = function(...)
-                local coroutine = kt_test_kt1(...) -- get LuaCoroutine instance
-                while true do
-                    local it = coroutine:next_iter()
-                    if it:is_break() then
-                        return it:value()
-                    end
-                    task:yield(function() return it:finished() end)
-                end
-            end
-        end
-    end
-
-    return sel_fn(...)
-end

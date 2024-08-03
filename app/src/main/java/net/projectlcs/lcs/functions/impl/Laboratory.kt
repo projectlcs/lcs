@@ -1,9 +1,9 @@
 package net.projectlcs.lcs.functions.impl
 
 import android.util.Log
-import net.projectlcs.lcs.ap.LuaFunction
-import net.projectlcs.lcs.ap.LuaProvider
-import net.projectlcs.lcs.functions.CoroutineProvider
+import me.ddayo.aris.CoroutineProvider
+import me.ddayo.aris.luagen.LuaFunction
+import me.ddayo.aris.luagen.LuaProvider
 
 // just for test
 @LuaProvider
@@ -51,7 +51,7 @@ function kt_test(task, ...)
 end
      */
 
-    // @LuaFunction
+    @LuaFunction
     fun test() = coroutine {
         val current = System.currentTimeMillis()
         Log.d("lab", "1")

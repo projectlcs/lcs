@@ -87,9 +87,8 @@ dependencies {
     testRuntimeOnly("party.iroiro.luajava:luajit-platform:4.0.0:natives-desktop")
 
     // AP
-    implementation(project(":ap"))
-    ksp(project(":ap"))
-
+    implementation(project(":aris.luagen"))
+    ksp(project(":aris.luagen"))
 }
 
 kotlin {

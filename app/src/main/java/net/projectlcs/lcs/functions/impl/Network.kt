@@ -1,6 +1,6 @@
 package net.projectlcs.lcs.functions.impl
 
-import net.projectlcs.lcs.ap.LuaProvider
+import me.ddayo.aris.luagen.LuaProvider
 
 @LuaProvider
 object Network {
