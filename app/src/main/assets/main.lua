@@ -42,7 +42,7 @@ function loop()
     for i, v in ipairs(registered_tasks) do
         if v:execute() then
             local t, s = v:resume()
-            if not t then debug_log("error inside coroutine " .. v.opt.name .. ": " .. s) end
+            if not t then debug_log(nil, "error inside coroutine " .. v.opt.name .. ": " .. s) end
             if coroutine.status(v.task) == "dead" then registered_tasks[i] = nil end
         end
     end

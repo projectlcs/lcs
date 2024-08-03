@@ -15,18 +15,15 @@ import net.projectlcs.lcs.functions.PermissionProvider
 
 @LuaProvider
 object DND: PermissionProvider {
-    override fun verifyPermission(tryRequest: Boolean): Boolean {
+    override fun verifyPermission(): Boolean {
         val notService = retrieveNotificationService()
+        return notService?.isNotificationPolicyAccessGranted == true
+    }
 
-        // request permission
-        return if (notService?.isNotificationPolicyAccessGranted != true) {
-            if(tryRequest)
-                LuaService.INSTANCE!!.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                })
-            false
-        }
-        else true
+    override fun requestPermission() {
+        LuaService.INSTANCE!!.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
     }
 
     private fun retrieveNotificationService(): NotificationManager? {
@@ -35,26 +32,30 @@ object DND: PermissionProvider {
     }
 
     @LuaFunction(name = "set_do_not_disturb")
-    fun setDND(newValue: Boolean) {
-        val notService = retrieveNotificationService()
-        /*
-         TODO: Android 15(SDK 35) contains critical change at this API
-         See also: https://developer.android.com/about/versions/15/behavior-changes-15#dnd-changes
-         */
-        notService?.let {
-            if (VERSION.SDK_INT > VERSION_CODES.UPSIDE_DOWN_CAKE)
-                Log.d("DND", "Android 15 can break some features")
-            it.setInterruptionFilter(
-                if (newValue)
-                    NotificationManager.INTERRUPTION_FILTER_NONE
-                else NotificationManager.INTERRUPTION_FILTER_ALL
-            )
+    fun setDND(newValue: Boolean) = coroutine<Unit> {
+        requestPermission {
+            val notService = retrieveNotificationService()
+            /*
+             TODO: Android 15(SDK 35) contains critical change at this API
+             See also: https://developer.android.com/about/versions/15/behavior-changes-15#dnd-changes
+             */
+            notService?.let {
+                if (VERSION.SDK_INT > VERSION_CODES.UPSIDE_DOWN_CAKE)
+                    Log.d("DND", "Android 15 can break some features")
+                it.setInterruptionFilter(
+                    if (newValue)
+                        NotificationManager.INTERRUPTION_FILTER_NONE
+                    else NotificationManager.INTERRUPTION_FILTER_ALL
+                )
+            }
         }
     }
 
     @LuaFunction(name = "get_do_not_disturb")
-    fun getDND(): Boolean {
-        val notService = retrieveNotificationService()
-        return notService!!.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_NONE
+    fun getDND() = coroutine {
+        requestPermission {
+            val notService = retrieveNotificationService()
+            breakTask(notService!!.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_NONE)
+        }
     }
 }
