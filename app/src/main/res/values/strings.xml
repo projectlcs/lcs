@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">LCS</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_permission_request">PermissionRequestActivity</string>
 </resources>
