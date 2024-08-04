@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools" >
 
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Using QUERY_ALL_PACKAGES instead of using queries tag because this app will determine the query by user -->
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
