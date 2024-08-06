@@ -38,9 +38,13 @@ function register_task(script, name)
     registered_tasks[#registered_tasks+1] = Scheduler:new(fn, { name = name })
 end
 
+local current_task
+function get_current_task() return current_task end
+
 function loop()
     for i, v in ipairs(registered_tasks) do
         if v:execute() then
+            current_task = v
             local t, s = v:resume()
             if not t then debug_log(nil, "error inside coroutine " .. v.opt.name .. ": " .. s) end
             if coroutine.status(v.task) == "dead" then registered_tasks[i] = nil end
