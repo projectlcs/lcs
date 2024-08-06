@@ -21,7 +21,7 @@ class LuaService: Service() {
 
     val lua = LuaHandler.createInstance()
 
-    val luaDispatcher = Dispatchers.Default.limitedParallelism(2, "lua")
+    val luaDispatcher = Dispatchers.Default.limitedParallelism(1, "lua")
 
     override fun onCreate() {
         super.onCreate()
