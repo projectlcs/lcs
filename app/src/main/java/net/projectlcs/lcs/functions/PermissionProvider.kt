@@ -1,14 +1,11 @@
 package net.projectlcs.lcs.functions
 
 import android.widget.Toast
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import me.ddayo.aris.CoroutineProvider
 import me.ddayo.aris.CoroutineProvider.CoroutineReturn
 import net.projectlcs.lcs.LuaService
 
-interface PermissionProvider: CoroutineProvider {
+interface PermissionProvider: CoroutineProvider, AndroidCoroutineInterop {
     fun verifyPermission(): Boolean
     fun requestPermission()
 
@@ -20,7 +17,7 @@ interface PermissionProvider: CoroutineProvider {
             requestPermission()
             yieldUntil {
                 if (System.currentTimeMillis() - beginTime > 60000) {
-                    GlobalScope.launch(Dispatchers.Main) {
+                    mainThread {
                         Toast.makeText(
                             LuaService.INSTANCE!!.applicationContext,
                             "Permission request timeout!!",
