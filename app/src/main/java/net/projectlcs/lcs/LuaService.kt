@@ -39,8 +39,6 @@ class LuaService: Service() {
         GlobalScope.launch(luaDispatcher) {
             lua.load(resources.assets.open("main_gen.lua").readBytes().decodeToString())
             lua.pCall(0, 0)
-            lua.load(resources.assets.open("main.lua").readBytes().decodeToString())
-            lua.pCall(0, 0)
 
             lua.getGlobal("register_task")
             lua.push(resources.assets.open("test.lua").readBytes().decodeToString())
