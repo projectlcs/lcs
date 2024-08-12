@@ -1,5 +1,6 @@
 package net.projectlcs.lcs
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -38,7 +39,12 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        var context: Context? = null
+            private set
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
+        context = this
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
@@ -65,6 +71,11 @@ class MainActivity : ComponentActivity() {
             Toast.makeText(this, "Restart application after enabling setting", Toast.LENGTH_LONG).show()
         }
         else applicationContext.startForegroundService(Intent(this, LuaService::class.java))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        context = null
     }
 }
 
@@ -118,6 +129,11 @@ fun OpenAIApiTest() {
                             """.trimIndent()
                         )
                         Log.d("OpenAIApiTest", "API 연동 성공: $response")
+                        LuaService.testScript = response
+                        MainActivity.context?.run {
+                            stopService(Intent(this, LuaService::class.java))
+                            startForegroundService(Intent(this, LuaService::class.java))
+                        }
                         "API 연동 성공: $response"
                     } catch (e: Exception) {
                         "API 연동 실패: ${e.message}"

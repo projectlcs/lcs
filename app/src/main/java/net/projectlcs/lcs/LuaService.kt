@@ -17,6 +17,8 @@ class LuaService: Service() {
     companion object {
         // Use context instead of its exact service for debugging purpose
         var INSTANCE: LuaService? = null
+
+        var testScript: String? = null
     }
 
     val lua = LuaHandler.createInstance()
@@ -41,7 +43,7 @@ class LuaService: Service() {
             lua.pCall(0, 0)
 
             lua.getGlobal("register_task")
-            lua.push(resources.assets.open("test.lua").readBytes().decodeToString())
+            lua.push(testScript ?: resources.assets.open("test.lua").readBytes().decodeToString())
             lua.push("test")
             lua.pCall(2, 0)
 
