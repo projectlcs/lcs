@@ -86,6 +86,9 @@ dependencies {
     runtimeOnly("party.iroiro.luajava:android:4.0.0:luajit@aar")
     testRuntimeOnly("party.iroiro.luajava:luajit-platform:4.0.0:natives-desktop")
 
+    // val ft = fileTree("C:\\Users\\dayo\\IdeaProjects\\aris.luagen\\build\\libs\\aris.luagen-1.0-SNAPSHOT.jar")
+    // implementation(ft)
+    // ksp(ft)
     // AP
     implementation(project(":aris.luagen"))
     ksp(project(":aris.luagen"))
