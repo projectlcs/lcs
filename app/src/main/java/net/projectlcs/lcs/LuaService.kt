@@ -39,13 +39,24 @@ class LuaService: Service() {
         INSTANCE = this
 
         GlobalScope.launch(luaDispatcher) {
-            lua.load(resources.assets.open("main_gen.lua").readBytes().decodeToString())
-            lua.pCall(0, 0)
+            try {
+                lua.load(resources.assets.open("main_gen.lua").readBytes().decodeToString())
+                lua.pCall(0, 0)
+            } catch(e: LuaException) {
+                Log.e("LUA_HEADER", "Lua exception on header loading: ${e.type}, ${e.message}")
+                return@launch
+            }
 
-            lua.getGlobal("register_task")
-            lua.push(testScript ?: resources.assets.open("test.lua").readBytes().decodeToString())
-            lua.push("test")
-            lua.pCall(2, 0)
+            try {
+                lua.getGlobal("register_task")
+                lua.push(
+                    testScript ?: resources.assets.open("test.lua").readBytes().decodeToString()
+                )
+                lua.push("test")
+                lua.pCall(2, 0)
+            } catch(e: LuaException) {
+                Log.e("LUA_LOAD", "Lua exception on script loading: ${e.type}, ${e.message}")
+            }
 
             while(true) {
                 lua.getGlobal("loop")
