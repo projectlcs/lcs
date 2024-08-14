@@ -53,6 +53,7 @@ class LuaService: Service() {
             while(true) {
                 lua.getGlobal("loop")
                 try {
+                    lua.load("create_alarm(1,5)")
                     lua.pCall(0, 0)
                 } catch(e: LuaException) {
                     Log.e("LUA", e.message ?: "null message")
