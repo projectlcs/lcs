@@ -7,8 +7,10 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import party.iroiro.luajava.LuaException
@@ -38,7 +40,7 @@ class LuaService: Service() {
 
         INSTANCE = this
 
-        GlobalScope.launch(luaDispatcher) {
+        CoroutineScope(luaDispatcher).launch {
             try {
                 lua.getGlobal("register_task")
                 lua.push(
