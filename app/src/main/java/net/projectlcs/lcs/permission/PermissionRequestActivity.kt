@@ -25,11 +25,13 @@ class PermissionRequestActivity : ComponentActivity() {
     companion object {
         const val REQUEST_PERMISSION = "request_permission"
         const val REQUEST_NOTIFICATION_PERMISSION = 1
+        const val REQUEST_BLUETOOTH_PERMISSION = 2
     }
 
     private val permissionToRequest by lazy { intent.getIntExtra(REQUEST_PERMISSION, -1) }
     private val targetPermission by lazy { when(permissionToRequest) {
         REQUEST_NOTIFICATION_PERMISSION -> requireSdkOrNull(Build.VERSION_CODES.TIRAMISU) { android.Manifest.permission.POST_NOTIFICATIONS }
+        REQUEST_BLUETOOTH_PERMISSION -> requireSdkOrNull(Build.VERSION_CODES.S) { android.Manifest.permission.BLUETOOTH_CONNECT }
         else -> null
     } }
 
