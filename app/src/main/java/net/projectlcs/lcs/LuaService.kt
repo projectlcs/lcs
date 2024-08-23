@@ -27,6 +27,8 @@ class LuaService: Service() {
 
     val luaDispatcher = Dispatchers.Default.limitedParallelism(1, "lua")
 
+    lateinit var job: Job
+
     override fun onCreate() {
         super.onCreate()
 
@@ -40,7 +42,7 @@ class LuaService: Service() {
 
         INSTANCE = this
 
-        CoroutineScope(luaDispatcher).launch {
+        job = CoroutineScope(luaDispatcher).launch {
             try {
                 lua.getGlobal("register_task")
                 lua.push(
@@ -70,6 +72,7 @@ class LuaService: Service() {
 
         Log.d("onDestroy", "service destroyed")
 
+        job.cancel()
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
