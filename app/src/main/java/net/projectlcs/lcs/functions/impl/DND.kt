@@ -32,6 +32,9 @@ object DND: PermissionProvider {
     }
 
     @LuaFunction(name = "set_do_not_disturb")
+            /**
+             * @param newValue new do not disturb state
+             */
     fun setDND(newValue: Boolean) = coroutine<Unit> {
         requestPermission {
             val notService = retrieveNotificationService()
@@ -52,6 +55,9 @@ object DND: PermissionProvider {
     }
 
     @LuaFunction(name = "get_do_not_disturb")
+            /**
+             * @return current do not disturb status
+             */
     fun getDND() = coroutine {
         requestPermission {
             val notService = retrieveNotificationService()

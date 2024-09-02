@@ -19,6 +19,12 @@ import net.projectlcs.lcs.permission.PermissionRequestActivity
 object Notification: PermissionProvider {
     @SuppressLint("MissingPermission") // requestPermission lambda asserts permission
     @LuaFunction(name = "send_notification")
+            /**
+             * Send notification with provided title and text
+             *
+             * @param title title of notification
+             * @param text inner text of notification
+             */
     fun sendNotification(title: String, text: String) = coroutine<Nothing> {
         requestPermission {
             val channelId = "LUA_CALL" // TODO: set this by task name
@@ -39,6 +45,11 @@ object Notification: PermissionProvider {
         }
     }
 
+    /**
+     * Send long toast message
+     *
+     * @param text text to displayed by long toast message
+     */
     @LuaFunction(name = "send_long_toast")
     fun sendToastLong(text: String) {
         mainThread {
@@ -46,6 +57,11 @@ object Notification: PermissionProvider {
         }
     }
 
+    /**
+     * Send toast message
+     *
+     * @param text text to displayed by toast message
+     */
     @LuaFunction(name = "send_toast")
     fun sendToast(text: String) {
         mainThread {

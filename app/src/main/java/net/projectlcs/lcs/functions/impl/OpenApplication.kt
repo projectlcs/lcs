@@ -10,6 +10,11 @@ import net.projectlcs.lcs.LuaService
 @LuaProvider
 object OpenApplication {
     @LuaFunction(name = "open_app")
+            /**
+             * Open application by package name
+             *
+             * @param pkg Application package name
+             */
     fun openApp(pkg: String) {
         val service = LuaService.INSTANCE!!
         service.packageManager?.getLaunchIntentForPackage(pkg)?.apply {
@@ -19,6 +24,11 @@ object OpenApplication {
     }
 
     @LuaFunction(name = "open_url")
+            /**
+             * Open webpage by default browser
+             *
+             * @param url url to open
+             */
     fun openUrl(url: String) {
         val service = LuaService.INSTANCE!!
         service.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {

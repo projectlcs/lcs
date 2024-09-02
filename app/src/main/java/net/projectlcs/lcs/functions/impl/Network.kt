@@ -9,10 +9,16 @@ import okhttp3.Request
 import java.io.File
 
 @LuaProvider
-object Network: AndroidCoroutineInterop, CoroutineProvider {
+object Network : AndroidCoroutineInterop, CoroutineProvider {
     private val client = OkHttpClient()
 
     @LuaFunction(name = "send_web_request")
+            /**
+             * Send HTTP Get request then retrieve response code and its data
+             *
+             * @param url target url
+             * @return response_code: Int, response_data: String
+             */
     fun sendGetRequest(url: String) = coroutine {
         var text: String? = null
         var responseCode: Int? = null
@@ -29,6 +35,14 @@ object Network: AndroidCoroutineInterop, CoroutineProvider {
     }
 
     @LuaFunction(name = "download_file")
+            /**
+             * Download file via HTTP Get request at provided name.
+             * If body is empty then it just creates empty file
+             *
+             * @param url target url
+             * @param name file name to save
+             * @return response_code: Int
+             */
     fun downloadFile(url: String, name: String) = coroutine {
         var responseCode: Int? = null
         var fileWriteResult: Boolean? = null
@@ -42,6 +56,6 @@ object Network: AndroidCoroutineInterop, CoroutineProvider {
             fileWriteResult = response.body() != null
         }
         yieldUntil { fileWriteResult != null }
-        breakTask(responseCode!!, fileWriteResult!!)
+        breakTask(responseCode!!)
     }
 }
