@@ -77,6 +77,8 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         context = null
     }
+
+    
 }
 
 @Composable

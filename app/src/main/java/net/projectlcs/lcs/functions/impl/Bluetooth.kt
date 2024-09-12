@@ -20,6 +20,7 @@ object Bluetooth: PermissionProvider {
     @SuppressLint("MissingPermission")
     @LuaFunction(name = "find_machin")
     fun findMachin() = coroutine<Unit> { // using coroutine here for request dangerous permission
+        Log.e("func", "fast_called")
         requestPermission { // this block will and only executed on user approved permission
             Log.d("func", "called")
             val context = LuaService.INSTANCE!! // using LuaService context. If LuaService is on execution, this variable always exists
@@ -32,22 +33,19 @@ object Bluetooth: PermissionProvider {
             if (bluetoothAdapter != null) {
                 Log.d("Adapter", "not none")
                 val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
+                if(pairedDevices?.isEmpty()==true){
+                    Log.d("Paired Device","paired device is null")
+                }
                 pairedDevices?.forEach { device ->
                     val deviceName = device.name
                     val deviceHardwareAddress = device.address // MAC 주소
-                    Log.d(
+                    Log.e(
                         "Paired Bluetooth Device",
                         "Name: $deviceName, MAC Address: $deviceHardwareAddress"
                     )
                 }
             } else {
                 Log.d("Adapter", "is nil")
-            }
-            val device: BluetoothDevice? = bluetoothAdapter?.getRemoteDevice("12:34:56:78:9A:BC")
-            if (device?.bondState == BluetoothDevice.BOND_BONDED) {
-                Log.w("LUA_B", "AC")
-            } else {
-                Log.w("LUA_B", "fail")
             }
         }
     }
