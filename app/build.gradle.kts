@@ -88,7 +88,6 @@ dependencies {
 
     // AP
     implementation("me.ddayo:aris.luagen")
-    implementation("me.ddayo:ap")
     ksp("me.ddayo:ap")
 }
 
