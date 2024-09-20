@@ -87,8 +87,9 @@ dependencies {
     testRuntimeOnly("party.iroiro.luajava:luajit-platform:4.0.0:natives-desktop")
 
     // AP
-    implementation(project(":aris.luagen"))
-    ksp(project(":aris.luagen"))
+    implementation("me.ddayo:aris.luagen")
+    implementation("me.ddayo:ap")
+    ksp("me.ddayo:ap")
 }
 
 kotlin {
@@ -109,4 +110,6 @@ project.afterEvaluate {
 
 ksp {
     arg("export_doc", "true")
+    arg("export_lua", "true")
+    arg("package_name", "net.projectlcs.lcs.lua.glue")
 }

@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "LCS"
 include(":app")
-include(":aris.luagen")
+includeBuild("aris.luagen")
