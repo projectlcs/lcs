@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -74,10 +73,5 @@ object Notification: PermissionProvider {
         return notManager?.areNotificationsEnabled() == true
     }
 
-    override fun requestPermission() {
-        LuaService.INSTANCE!!.startActivity(Intent(LuaService.INSTANCE!!, PermissionRequestActivity::class.java)
-            .putExtra(PermissionRequestActivity.REQUEST_PERMISSION, PermissionRequestActivity.REQUEST_NOTIFICATION_PERMISSION)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
-    }
+    override fun requestPermission() = startPermissionActivity(PermissionRequestActivity.REQUEST_NOTIFICATION_PERMISSION)
 }

@@ -1,7 +1,6 @@
 package net.projectlcs.lcs.permission
 
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -10,14 +9,16 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import net.projectlcs.lcs.permission.impl.DangerousPermission
+import net.projectlcs.lcs.permission.impl.DrawOverlayPermission
+import net.projectlcs.lcs.permission.impl.IPermission
+import net.projectlcs.lcs.permission.impl.NotificationPolicyPermission
 import net.projectlcs.lcs.permission.ui.theme.LCSTheme
 
 
@@ -25,54 +26,52 @@ class PermissionRequestActivity : ComponentActivity() {
     companion object {
         const val REQUEST_PERMISSION = "request_permission"
         const val REQUEST_NOTIFICATION_PERMISSION = 1
-    }
+        const val REQUEST_NOTIFICATION_POLICY_PERMISSION = 3
+        const val REQUEST_DRAW_OVERLAY_PERMISSION = 4
 
-    private val permissionToRequest by lazy { intent.getIntExtra(REQUEST_PERMISSION, -1) }
-    private val targetPermission by lazy { when(permissionToRequest) {
-        REQUEST_NOTIFICATION_PERMISSION -> requireSdkOrNull(Build.VERSION_CODES.TIRAMISU) { android.Manifest.permission.POST_NOTIFICATIONS }
-        else -> null
-    } }
+        private val permissionMap = mapOf(
+            REQUEST_NOTIFICATION_PERMISSION to requireSdkOrNull(Build.VERSION_CODES.TIRAMISU) {
+                DangerousPermission(
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                )
+            },
+            REQUEST_NOTIFICATION_POLICY_PERMISSION to NotificationPolicyPermission(),
+            REQUEST_DRAW_OVERLAY_PERMISSION to DrawOverlayPermission()
+        )
 
-    private val requestPermissionLauncher by lazy {
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
-                finish()
-            }
+        private inline fun <T> requireSdkOrNull(version: Int, then: () -> T): T? {
+            return if (Build.VERSION.SDK_INT >= version) then()
+            else null
         }
     }
+
+    private val permissionToRequest: IPermission? by lazy {
+        permissionMap[intent.getIntExtra(
+            REQUEST_PERMISSION,
+            -1
+        )]
+    }
+
+    var permissionHandler: ActivityResultLauncher<*>? = null
+        private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if(targetPermission == null) {
-            Toast.makeText(applicationContext, "Internal error on permission request", Toast.LENGTH_LONG).show()
+        if (permissionToRequest == null) {
+            Toast.makeText(
+                applicationContext,
+                "Internal error on permission request",
+                Toast.LENGTH_LONG
+            ).show()
             finish()
         }
 
-        requestPermissionLauncher // load lazy
-        
+        permissionHandler = permissionToRequest!!.init(this)
+
         enableEdgeToEdge()
         setContent {
             ui()
-        }
-    }
-
-    private inline fun<T> requireSdkOrNull(version: Int, then: () -> T): T? {
-        return if(Build.VERSION.SDK_INT >= version) then()
-        else null
-    }
-
-    private fun requestPermission() {
-        when {
-            ContextCompat.checkSelfPermission(this, targetPermission!!) == PackageManager.PERMISSION_GRANTED -> {
-                Toast.makeText(this, "Permission already granted", Toast.LENGTH_SHORT).show()
-                finish()
-            }
-            // lets assume ui already contains the information of permission to request.
-            ActivityCompat.shouldShowRequestPermissionRationale(this, targetPermission!!) -> {
-                requestPermissionLauncher.launch(targetPermission!!)
-            }
-            else -> requestPermissionLauncher.launch(targetPermission!!)
         }
     }
 
@@ -92,17 +91,18 @@ class PermissionRequestActivity : ComponentActivity() {
     fun ui() = LCSTheme {
         Column {
             Button(onClick = {
-                requestPermission()
+                permissionToRequest?.requestPermission(this@PermissionRequestActivity)
             }) {
                 Text(text = "Request permission")
             }
-            Button(
-                onClick = {
-                    startInstalledAppDetailsActivity()
-                },
-            ) {
-                Text(text = "Open settings")
-            }
+            if (permissionToRequest?.useSettingsButton == true)
+                Button(
+                    onClick = {
+                        startInstalledAppDetailsActivity()
+                    },
+                ) {
+                    Text(text = "Open settings")
+                }
         }
     }
 }

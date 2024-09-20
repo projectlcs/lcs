@@ -2,15 +2,14 @@ package net.projectlcs.lcs.functions.impl
 
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
-import android.provider.Settings
 import android.util.Log
 import me.ddayo.aris.luagen.LuaFunction
 import me.ddayo.aris.luagen.LuaProvider
 import net.projectlcs.lcs.LuaService
 import net.projectlcs.lcs.functions.PermissionProvider
+import net.projectlcs.lcs.permission.PermissionRequestActivity
 
 
 @LuaProvider
@@ -20,11 +19,7 @@ object DND: PermissionProvider {
         return notService?.isNotificationPolicyAccessGranted == true
     }
 
-    override fun requestPermission() {
-        LuaService.INSTANCE!!.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        })
-    }
+    override fun requestPermission() = startPermissionActivity(PermissionRequestActivity.REQUEST_NOTIFICATION_POLICY_PERMISSION)
 
     private fun retrieveNotificationService(): NotificationManager? {
         val service = LuaService.INSTANCE!!
