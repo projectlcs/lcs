@@ -9,10 +9,10 @@ import android.os.IBinder
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.ddayo.aris.LuaEngine
 import party.iroiro.luajava.LuaException
 
 class LuaService: Service() {
@@ -23,7 +23,7 @@ class LuaService: Service() {
         var testScript: String? = null
     }
 
-    val lua = LuaHandler.createInstance()
+    val engine = AndroidLuaEngine()
 
     val luaDispatcher = Dispatchers.Default.limitedParallelism(1, "lua")
 
@@ -44,20 +44,18 @@ class LuaService: Service() {
 
         job = CoroutineScope(luaDispatcher).launch {
             try {
-                lua.getGlobal("register_task")
-                lua.push(
-                    testScript ?: resources.assets.open("test.lua").readBytes().decodeToString()
-                )
-                lua.push("test")
-                lua.pCall(2, 0)
+                engine.addTask(LuaEngine.LuaTask(engine, testScript ?: resources.assets.open("test.lua").readBytes().decodeToString(), "test"))
+                engine.addTask(LuaEngine.LuaTask(engine, """
+                        debug_log("02")
+                        task_sleep(500)
+                """.trimIndent(),  "2", true))
             } catch(e: LuaException) {
                 Log.e("LUA_LOAD", "Lua exception on script loading: ${e.type}, ${e.message}")
             }
 
             while(true) {
-                lua.getGlobal("loop")
                 try {
-                    lua.pCall(0, 0)
+                    engine.loop()
                 } catch(e: LuaException) {
                     Log.e("LUA", e.message ?: "null message")
                 }
