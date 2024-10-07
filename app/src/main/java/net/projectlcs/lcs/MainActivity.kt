@@ -5,17 +5,36 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.widget.Button
+import android.widget.HorizontalScrollView
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -25,7 +44,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.VerticalAlignmentLine
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -87,7 +111,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     )
 }
 
-@Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     LCSTheme {
@@ -97,8 +120,10 @@ fun GreetingPreview() {
 
 
 
+@Preview(showBackground = true)
 @Composable
 fun OpenAIApiTest() {
+    var isVisible by remember { mutableStateOf(true) }
     var apiResponse by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var inputText by remember { mutableStateOf("") }
@@ -599,22 +624,83 @@ fun OpenAIApiTest() {
     """.trimIndent()
 
     Column(modifier = Modifier.padding(16.dp)) {
-        TextField(
-            value = inputText,
-            onValueChange = { inputText = it },
-            label = { Text("요구사항을 입력하세요") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
+        //Button({ isVisible = !isVisible }) {}
+        Row(
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center) {
+            Box(modifier = Modifier.size(100.dp)) {
+                IconButton(onClick = {
+                    //
+                }, modifier = Modifier.fillMaxSize()) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher),
+                        contentDescription = null,
+                        modifier = Modifier
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(128.dp))
+        Row(
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            IconButton(onClick = {
+                isVisible=!isVisible
+            }, modifier = Modifier.wrapContentSize()) {
+                Image(
+                    painter= painterResource(id = R.drawable.baseline_add_circle_outline_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+            ) {
+            Column {
+                Button(onClick = { /* TODO: 추가 버튼 1의 액션 */ }) {
+                    Text(text = "추가 버튼 1")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = { /* TODO: 추가 버튼 2의 액션 */ }) {
+                    Text(text = "추가 버튼 2")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = { /* TODO: 추가 버튼 3의 액션 */ }) {
+                    Text(text = "추가 버튼 3")
+                }
+            }
+        }
+        Row(
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()
+                .padding(top = 128.dp)
+        ){
+            TextField(
+                value = inputText,
+                onValueChange = { inputText = it },
+                label = { Text("요구사항을 입력하세요") },
+                modifier = Modifier
+            )
 
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    isLoading = true
-                    apiResponse = try {
-                        var response = testOpenAIApi(
-                            """
+            //Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.align(Alignment.CenterVertically)) {
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            isLoading = true
+                            apiResponse = try {
+                                var response = testOpenAIApi(
+                                    """
                             안드로이드 스튜디오에서 작업중입니다. 
                             맨 아래의 요구사항에는 안드로이드에서 사용가능한 기능을 자연어로 입력될것 입니다. 
                             요구사항에 맞는 루아 스크립트를 작성해주세요. 
@@ -627,31 +713,39 @@ fun OpenAIApiTest() {
                             코드형식으로 반환해주세요.
                             주석이나 설명은 빼주세요.
                             """.trimIndent()
-                        )
+                                )
 
-                        response = response.removePrefix("```lua")
+                                response = response.removePrefix("```lua")
 
-                        // Trim the "```" from both ends
-                        response = response.removePrefix("```").removeSuffix("```")
-                        response = response.removePrefix("\n").removeSuffix("\n")
-                        Log.d("OpenAIApiTest", "API 연동 성공: $response")
+                                // Trim the "```" from both ends
+                                response = response.removePrefix("```").removeSuffix("```")
+                                response = response.removePrefix("\n").removeSuffix("\n")
+                                Log.d("OpenAIApiTest", "API 연동 성공: $response")
 
-                        LuaService.testScript = response
-                        MainActivity.context?.run {
-                            stopService(Intent(this, LuaService::class.java))
-                            startForegroundService(Intent(this, LuaService::class.java))
+                                LuaService.testScript = response
+                                MainActivity.context?.run {
+                                    stopService(Intent(this, LuaService::class.java))
+                                    startForegroundService(Intent(this, LuaService::class.java))
+                                }
+                                "API 연동 성공: $response"
+                            } catch (e: Exception) {
+                                "API 연동 실패: ${e.message}"
+                            }
+                            isLoading = false
                         }
-                        "API 연동 성공: $response"
-                    } catch (e: Exception) {
-                        "API 연동 실패: ${e.message}"
-                    }
-                    isLoading = false
+                    },
+                    modifier = Modifier.wrapContentHeight()
+                ) {
+                    //Text("test")
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_send_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                    )
                 }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("OpenAI API 테스트")
+            }
         }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
