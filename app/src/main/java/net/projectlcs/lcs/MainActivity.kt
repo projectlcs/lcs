@@ -17,6 +17,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,12 +30,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -46,12 +52,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import net.projectlcs.lcs.permission.PermissionRequestActivity
 import net.projectlcs.lcs.theme.LCSTheme
@@ -61,25 +72,33 @@ import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
 
+
 class MainActivity : ComponentActivity() {
     companion object {
         var context: Context? = null
             private set
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         context = this
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LCSTheme {
+            /*LCSTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
+            }*/
+            val navController=rememberNavController()
+            NavHost(navController = navController, startDestination = "main") {
+                composable("main") { OpenAIApiTest(navController = navController) }
+                composable("screen1") { Screen1(navController = navController) }
+                composable("screen2") { Screen2(navController = navController) }
+                composable("screen3") { Screen3(navController = navController) }
             }
-            OpenAIApiTest()
         }
     }
 
@@ -88,13 +107,16 @@ class MainActivity : ComponentActivity() {
 
         // check for overlay permission
         if (!Settings.canDrawOverlays(this)) {
-            startActivity(Intent(this, PermissionRequestActivity::class.java)
-                .putExtra(PermissionRequestActivity.REQUEST_PERMISSION, PermissionRequestActivity.REQUEST_DRAW_OVERLAY_PERMISSION)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(
+                Intent(this, PermissionRequestActivity::class.java)
+                    .putExtra(
+                        PermissionRequestActivity.REQUEST_PERMISSION,
+                        PermissionRequestActivity.REQUEST_DRAW_OVERLAY_PERMISSION
+                    )
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
             finish()
-        }
-        else applicationContext.startForegroundService(Intent(this, LuaService::class.java))
+        } else applicationContext.startForegroundService(Intent(this, LuaService::class.java))
     }
 
     override fun onDestroy() {
@@ -119,16 +141,15 @@ fun GreetingPreview() {
 }
 
 
-
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun OpenAIApiTest() {
+fun OpenAIApiTest(navController:NavController) {
     var isVisible by remember { mutableStateOf(true) }
     var apiResponse by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var inputText by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
-    val functionList="""
+    val functionList = """
         package me.ddayo.aris.gen
 
         import me.ddayo.aris.luagen.LuaMultiReturn
@@ -623,13 +644,14 @@ fun OpenAIApiTest() {
 
     """.trimIndent()
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.padding(32.dp)) {
         //Button({ isVisible = !isVisible }) {}
         Row(
             modifier = Modifier
                 .wrapContentHeight()
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center) {
+            horizontalArrangement = Arrangement.Center
+        ) {
             Box(modifier = Modifier.size(100.dp)) {
                 IconButton(onClick = {
                     //
@@ -650,10 +672,10 @@ fun OpenAIApiTest() {
             horizontalArrangement = Arrangement.End
         ) {
             IconButton(onClick = {
-                isVisible=!isVisible
+                isVisible = !isVisible
             }, modifier = Modifier.wrapContentSize()) {
                 Image(
-                    painter= painterResource(id = R.drawable.baseline_add_circle_outline_24),
+                    painter = painterResource(id = R.drawable.baseline_add_circle_outline_24),
                     contentDescription = null,
                     modifier = Modifier
                 )
@@ -664,27 +686,64 @@ fun OpenAIApiTest() {
             visible = isVisible,
             enter = expandVertically() + fadeIn(),
             exit = shrinkVertically() + fadeOut()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.End
             ) {
-            Column {
-                Button(onClick = { /* TODO: 추가 버튼 1의 액션 */ }) {
-                    Text(text = "추가 버튼 1")
+                Button(
+                    onClick = {navController.navigate("screen1")},
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2C3E50),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.width(200.dp)
+                    ) {
+                    Text(text = "스크립트 관리")
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = { /* TODO: 추가 버튼 2의 액션 */ }) {
-                    Text(text = "추가 버튼 2")
+                Button(
+                    onClick = {navController.navigate("screen2")},
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2C3E50),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.width(200.dp)
+                ) {
+                    Text(text = "템플릿 더보기")
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = { /* TODO: 추가 버튼 3의 액션 */ }) {
-                    Text(text = "추가 버튼 3")
+                Button(
+                    onClick = {navController.navigate("screen3")},
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2C3E50), // 딥 블루
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.width(200.dp)
+                ) {
+                    Text(text = "권한 관리")
                 }
             }
         }
+
+        if (isLoading) {
+            CircularProgressIndicator()
+        } else {
+            Text(apiResponse)
+        }
+    }
+
+    Row(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp),
+        verticalAlignment = Alignment.Bottom) {
         Row(
             modifier = Modifier
                 .wrapContentHeight()
-                .fillMaxWidth()
-                .padding(top = 128.dp)
-        ){
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.Bottom
+        ) {
             TextField(
                 value = inputText,
                 onValueChange = { inputText = it },
@@ -748,11 +807,84 @@ fun OpenAIApiTest() {
 
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+@Composable
+fun Screen1(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        //verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ){
+            Button(onClick = { navController.navigate("main"){
+                popUpTo("screen1") {inclusive=true}
+            } }) {
+                Text("메인 화면으로 돌아가기")
+            }
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Add a single item
+            item {
+                Text(text = "First item")
+            }
 
-        if (isLoading) {
-            CircularProgressIndicator()
-        } else {
-            Text(apiResponse)
+            // Add 5 items
+            items(100) { index ->
+                Text(text = "Item: $index")
+            }
+
+            // Add another single item
+            item {
+                Text(text = "Last item")
+            }
+        }
+    }
+}
+
+@Composable
+fun Screen2(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "이것은 화면 2입니다.")
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { navController.navigate("main"){
+            popUpTo("screen2") {inclusive=true}
+        } }) {
+            Text("메인 화면으로 돌아가기")
+        }
+    }
+}
+
+@Composable
+fun Screen3(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "이것은 화면 3입니다.")
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { navController.navigate("main"){
+            popUpTo("screen3") {inclusive=true}
+        } }) {
+            Text("메인 화면으로 돌아가기")
         }
     }
 }
