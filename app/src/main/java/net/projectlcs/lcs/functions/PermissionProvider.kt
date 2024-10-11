@@ -6,6 +6,7 @@ import me.ddayo.aris.CoroutineProvider
 import me.ddayo.aris.CoroutineProvider.CoroutineReturn
 import net.projectlcs.lcs.LuaService
 import net.projectlcs.lcs.permission.PermissionRequestActivity
+import kotlin.experimental.ExperimentalTypeInference
 
 interface PermissionProvider: CoroutineProvider, AndroidCoroutineInterop {
     fun verifyPermission(): Boolean
@@ -19,7 +20,8 @@ interface PermissionProvider: CoroutineProvider, AndroidCoroutineInterop {
         )
     }
 
-    suspend fun<T> SequenceScope<CoroutineReturn<T>>.requestPermission(then: suspend SequenceScope<CoroutineReturn<T>>.() -> Unit) {
+    @OptIn(ExperimentalTypeInference::class)
+    suspend fun<T> SequenceScope<CoroutineReturn<T>>.requestPermission(@BuilderInference then: suspend SequenceScope<CoroutineReturn<T>>.() -> Unit) {
         val beginTime = System.currentTimeMillis()
         var isTimeout = false
 

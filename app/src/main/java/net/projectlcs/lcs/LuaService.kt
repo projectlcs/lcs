@@ -44,11 +44,15 @@ class LuaService: Service() {
 
         job = CoroutineScope(luaDispatcher).launch {
             try {
+                // TODO: https://stackoverflow.com/questions/78922796/frequent-crashes-in-internshrstr-after-multiple-executions-of-lua-script-using-l
                 engine.addTask(LuaEngine.LuaTask(engine, testScript ?: resources.assets.open("test.lua").readBytes().decodeToString(), "test"))
+                /*
                 engine.addTask(LuaEngine.LuaTask(engine, """
                         debug_log("02")
-                        task_sleep(500)
+                        task_sleep(1)
+                        debug_log("03")
                 """.trimIndent(),  "2", true))
+                 */
             } catch(e: LuaException) {
                 Log.e("LUA_LOAD", "Lua exception on script loading: ${e.type}, ${e.message}")
             }
@@ -57,7 +61,8 @@ class LuaService: Service() {
                 try {
                     engine.loop()
                 } catch(e: LuaException) {
-                    Log.e("LUA", e.message ?: "null message")
+                    Log.e("Lua Runtime", ("Error: " + e.message))
+                    // throw e
                 }
                 delay(100)
             }

@@ -2,18 +2,34 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" >
 
+    <!-- Notification permissions -->
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Using QUERY_ALL_PACKAGES instead of using queries tag because this app will determine the query by user -->
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
+
+    <!-- Mandatory on opening new activity from background service -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- LuaService is basically work as foreground service(with long living time -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!-- Add alarm related functions(impl.Alarms) -->
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+
+    <!-- Networking related functions(impl.Network) -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- We must declare reason about why our application needs this permission -->
+
+    <!-- Location related functions(impl.Location) -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- File management related functions(impl.FileManagement -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
 
     <application

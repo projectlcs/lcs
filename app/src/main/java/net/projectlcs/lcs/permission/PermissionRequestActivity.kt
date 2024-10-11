@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import net.projectlcs.lcs.permission.impl.DangerousPermission
 import net.projectlcs.lcs.permission.impl.DrawOverlayPermission
 import net.projectlcs.lcs.permission.impl.IPermission
+import net.projectlcs.lcs.permission.impl.LocationPermission
 import net.projectlcs.lcs.permission.impl.NotificationPolicyPermission
 import net.projectlcs.lcs.permission.ui.theme.LCSTheme
 
@@ -29,6 +30,7 @@ class PermissionRequestActivity : ComponentActivity() {
         const val REQUEST_NOTIFICATION_POLICY_PERMISSION = 3
         const val REQUEST_DRAW_OVERLAY_PERMISSION = 4
         const val REQUEST_FILE_MANAGE_PERMISSION = 5
+        const val REQUEST_LOCATION_PERMISSION = 6
 
         private val permissionMap = mapOf(
             REQUEST_NOTIFICATION_PERMISSION to requireSdkOrNull(Build.VERSION_CODES.TIRAMISU) {
@@ -38,7 +40,8 @@ class PermissionRequestActivity : ComponentActivity() {
             },
             REQUEST_NOTIFICATION_POLICY_PERMISSION to NotificationPolicyPermission(),
             REQUEST_DRAW_OVERLAY_PERMISSION to DrawOverlayPermission(),
-            REQUEST_FILE_MANAGE_PERMISSION to DangerousPermission(android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+            REQUEST_FILE_MANAGE_PERMISSION to DangerousPermission(android.Manifest.permission.MANAGE_EXTERNAL_STORAGE),
+            REQUEST_LOCATION_PERMISSION to LocationPermission(),
         )
 
         private inline fun <T> requireSdkOrNull(version: Int, then: () -> T): T? {
