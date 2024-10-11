@@ -15,6 +15,8 @@ composeBom = "2024.06.00"
 
 luajit = "4.0.0"
 ksp-api = "2.0.0-1.0.21"
+navigationRuntimeKtx = "2.8.2"
+navigationCompose = "2.8.2"
 playServicesLocation = "21.3.0"
 
 [libraries]
@@ -37,6 +39,8 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 luajit = { module = "party.iroiro.luajava:luajit", version.ref = "luajit" }
+androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
