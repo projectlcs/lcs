@@ -12,7 +12,7 @@ while true do
     local a, b, c = get_location()
     send_notification("Location", "Location: " .. a .. ", " .. b .. ", " .. c)
     debug_log("a")
-    -- set_do_not_disturb(not get_do_not_disturb())
+    set_do_not_disturb(not get_do_not_disturb())
     debug_log("b")
 end
 

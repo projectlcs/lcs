@@ -75,14 +75,15 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    implementation(libs.luajit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(kotlin("reflect"))
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.play.services.location)
 
+    implementation(libs.luajit)
     // https://github.com/gradle/gradle/issues/26468
     // noinspection UseTomlInstead, they don't support artifact with classifier
     runtimeOnly("party.iroiro.luajava:android:4.0.0:luajit@aar")
