@@ -49,7 +49,6 @@ object Location: PermissionProvider, GMSHelper {
                 Log.e("Location", "Exception caught while processing getLastLocation function: $e")
                 breakTask(0, 0, 0)
             }
-             // breakTask(1, 2, 3)
         }
     }
 }
