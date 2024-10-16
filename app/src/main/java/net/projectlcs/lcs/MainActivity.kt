@@ -835,19 +835,19 @@ fun Screen1(navController: NavController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Add a single item
-            item {
-                Text(text = "First item")
-            }
+            LuaService.INSTANCE?.let { svc ->
+                val engine = svc.engine
+                val tasks = engine.tasks
 
-            // Add 5 items
-            items(100) { index ->
-                Text(text = "Item: $index")
-            }
-
-            // Add another single item
-            item {
-                Text(text = "Last item")
+                // Add 5 items
+                items(tasks.size) { index ->
+                    Button({
+                        tasks[index].isPaused = !tasks[index].isPaused
+                        Toast.makeText(svc, "Task ${tasks[index].name} clicked", Toast.LENGTH_LONG).show()
+                    }) {
+                        Text(text = "Task: ${tasks[index].name}")
+                    }
+                }
             }
         }
     }
