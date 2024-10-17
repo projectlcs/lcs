@@ -843,7 +843,7 @@ fun Screen1(navController: NavController) {
                 items(tasks.size) { index ->
                     Button({
                         tasks[index].isPaused = !tasks[index].isPaused
-                        Toast.makeText(svc, "Task ${tasks[index].name} clicked", Toast.LENGTH_LONG).show()
+                        // Toast.makeText(svc, "Task ${tasks[index].name} clicked", Toast.LENGTH_LONG).show()
                     }) {
                         Text(text = "Task: ${tasks[index].name}")
                     }

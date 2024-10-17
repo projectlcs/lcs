@@ -12,8 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.ddayo.aris.LuaEngine
 import party.iroiro.luajava.LuaException
+import party.iroiro.luajava.luajit.LuaJit
 
 class LuaService: Service() {
     companion object {
@@ -23,7 +23,7 @@ class LuaService: Service() {
         var testScript: String? = null
     }
 
-    val engine = AndroidLuaEngine()
+    val engine = AndroidLuaEngine(LuaJit())
 
     val luaDispatcher = Dispatchers.Default.limitedParallelism(1, "lua")
 
