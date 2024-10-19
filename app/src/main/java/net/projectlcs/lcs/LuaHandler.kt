@@ -1,5 +1,7 @@
 package net.projectlcs.lcs
 
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import me.ddayo.aris.LuaEngine
 import net.projectlcs.lcs.data.ScriptReference
@@ -23,11 +25,13 @@ open class AndroidLuaEngine(lua: Lua) : LuaEngine(lua) {
         override var isPaused: Boolean
             get() = super.isPaused
             set(value) {
-                Toast.makeText(
-                    LuaService.INSTANCE,
-                    if (value) "Task $name paused" else "Task $name resumed",
-                    Toast.LENGTH_LONG
-                ).show()
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(
+                        LuaService.INSTANCE,
+                        if (value) "Task $name paused" else "Task $name resumed",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
                 super.isPaused = value
             }
     }
