@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.projectlcs.lcs.data.ScriptDataManager
 import party.iroiro.luajava.LuaException
@@ -53,30 +54,27 @@ class LuaService : Service() {
 
         job = CoroutineScope(luaDispatcher).launch {
             try {
-                ScriptDataManager.getAllScripts().forEach {
-                    if(it.isValid) {
-                        engine.createTask(
-                            code = it.code,
-                            name = it.name,
-                            ref = it,
-                            repeat = true
-                        ).isPaused = it.isPaused
+                ScriptDataManager.getAllScripts().first()
+                    .forEach { it ->
+                        if (it.isValid) {
+                            engine.createTask(
+                                code = it.code,
+                                name = it.name,
+                                ref = it,
+                                repeat = true
+                            ).isPaused = it.isPaused
+                        }
                     }
-                }
-                /*
-                // TODO: https://stackoverflow.com/questions/78922796/frequent-crashes-in-internshrstr-after-multiple-executions-of-lua-script-using-l
-                engine.createTask(testScript ?: resources.assets.open("test.lua").readBytes().decodeToString(), "test", true)
-
-                engine.createTask("""
-                        debug_log("02")
-                        task_sleep(1)
-                        debug_log("03")
-                """.trimIndent(),  "2", true)
-
-
-                 */
             } catch (e: LuaException) {
                 Log.e("LUA_LOAD", "Lua exception on script loading: ${e.type}, ${e.message}")
+            }
+            ScriptDataManager.deleteAllScript(*ScriptDataManager.getAllScripts().first().toTypedArray())
+            if (ScriptDataManager.getAllScripts().first().isEmpty()) {
+                val sc = ScriptDataManager.createNewScript("Test1")
+                sc.code =
+                    testScript ?: resources.assets.open("test.lua").readBytes().decodeToString()
+                ScriptDataManager.updateAllScript(engine, sc)
+                Log.e("Update", "updated")
             }
 
             while (true) {

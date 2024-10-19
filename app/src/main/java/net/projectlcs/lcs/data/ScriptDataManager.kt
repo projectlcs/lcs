@@ -12,6 +12,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.Update
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import net.projectlcs.lcs.AndroidLuaEngine
 import net.projectlcs.lcs.LCS
 import net.projectlcs.lcs.LuaService
@@ -37,7 +40,10 @@ data class ScriptReference(
 @Dao
 interface ScriptReferenceDao {
     @Query("SELECT * FROM script_reference")
-    fun getAllInstances(): List<ScriptReference>
+    fun getAllInstances(): Flow<List<ScriptReference>>
+
+    @Query("SELECT * FROM script_reference WHERE id = :taskId LIMIT 1")
+    fun getTaskById(taskId: Long): Flow<ScriptReference>
 
     @Insert
     fun insertAll(vararg references: ScriptReference): List<Long>
@@ -75,19 +81,25 @@ object ScriptDataManager {
         return ref
     }
 
-    fun updateAllScript(vararg ref: ScriptReference) {
-        LuaService.INSTANCE?.let { svc ->
-            svc.engine.tasks.forEach {
-                val task = it as AndroidLuaEngine.AndroidLuaTask
-                ref.firstOrNull { it == task.ref }?.let {
-                    task.remove()
-                    val task = task.engine.createTask(
+    fun updateAllScript(engine: AndroidLuaEngine?, vararg ref: ScriptReference) {
+        engine?.let { engine ->
+            CoroutineScope(LuaService.INSTANCE!!.luaDispatcher).launch {
+                engine.tasks.forEach {
+                    val task = it as AndroidLuaEngine.AndroidLuaTask
+                    ref.firstOrNull { it == task.ref }?.let {
+                        task.remove()
+                    }
+                }
+                ref.forEach {
+                    val task = engine.createTask(
                         code = it.code,
                         name = it.name,
-                        repeat = true
+                        repeat = true,
+                        ref = it
                     )
                     task.isPaused = it.isPaused
                     it.isValid = task.isValid
+                    it.lastModifyDate = LocalDateTime.now()
                 }
             }
         }
@@ -97,10 +109,13 @@ object ScriptDataManager {
 
     fun deleteAllScript(vararg ref: ScriptReference) {
         LuaService.INSTANCE?.let { svc ->
-            svc.engine.tasks.removeIf { task -> ref.any { it == (task as AndroidLuaEngine.AndroidLuaTask).ref } }
+            CoroutineScope(svc.luaDispatcher).launch {
+                svc.engine.tasks.removeIf { task -> ref.any { it == (task as AndroidLuaEngine.AndroidLuaTask).ref } }
+            }
         }
         db.scriptReferenceDao().delete(*ref)
     }
 
     fun getAllScripts() = db.scriptReferenceDao().getAllInstances()
+    fun getTaskById(id: Long) = db.scriptReferenceDao().getTaskById(id)
 }

@@ -5,9 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import android.widget.Button
-import android.widget.HorizontalScrollView
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,8 +14,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,25 +24,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBarItemColors
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,19 +47,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import me.ddayo.aris.LuaEngine
+import net.projectlcs.lcs.data.ScriptDataManager
+import net.projectlcs.lcs.data.ScriptReference
 import net.projectlcs.lcs.permission.PermissionRequestActivity
 import net.projectlcs.lcs.theme.LCSTheme
 import retrofit2.Retrofit
@@ -97,14 +93,14 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }*/
-            val navController=rememberNavController()
+            val navController = rememberNavController()
             NavHost(navController = navController, startDestination = "main") {
                 composable("main") { OpenAIApiTest(navController = navController) }
                 composable("screen1") { Screen1(navController = navController) }
                 composable("screen2") { Screen2(navController = navController) }
                 composable("screen3") { Screen3(navController = navController) }
                 composable("details/{itemId}") { navBackStackEntry ->
-                    DetailsScreen(navController,navBackStackEntry.arguments?.getString("itemId"))
+                    DetailsScreen(navController, navBackStackEntry.arguments?.getString("itemId"))
                 }
             }
         }
@@ -151,7 +147,7 @@ fun GreetingPreview() {
 
 //@Preview(showBackground = true)
 @Composable
-fun OpenAIApiTest(navController:NavController) {
+fun OpenAIApiTest(navController: NavController) {
     var isVisible by remember { mutableStateOf(true) }
     var apiResponse by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -701,18 +697,18 @@ fun OpenAIApiTest(navController:NavController) {
                 horizontalAlignment = Alignment.End
             ) {
                 Button(
-                    onClick = {navController.navigate("screen1")},
+                    onClick = { navController.navigate("screen1") },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2C3E50),
                         contentColor = Color.White
                     ),
                     modifier = Modifier.width(200.dp)
-                    ) {
+                ) {
                     Text(text = "스크립트 관리")
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
-                    onClick = {navController.navigate("screen2")},
+                    onClick = { navController.navigate("screen2") },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2C3E50),
                         contentColor = Color.White
@@ -723,7 +719,7 @@ fun OpenAIApiTest(navController:NavController) {
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
-                    onClick = {navController.navigate("screen3")},
+                    onClick = { navController.navigate("screen3") },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2C3E50), // 딥 블루
                         contentColor = Color.White
@@ -742,10 +738,12 @@ fun OpenAIApiTest(navController:NavController) {
         }
     }
 
-    Row(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp),
-        verticalAlignment = Alignment.Bottom) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalAlignment = Alignment.Bottom
+    ) {
         Row(
             modifier = Modifier
                 .wrapContentHeight()
@@ -818,95 +816,109 @@ fun OpenAIApiTest(navController:NavController) {
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
-@Composable
-fun SimpleFilledTextFieldSample() {
-    var text by remember { mutableStateOf("Hello") }
 
+@Composable
+fun SimpleFilledTextFieldSample(task: ScriptReference) {
     TextField(
-        value = text,
-        onValueChange = { text = it },
+        value = task.code,
+        onValueChange = {  },
         label = { Text("Code Editor") },
         modifier = Modifier.fillMaxWidth()
     )
 }
+
 @Composable
 fun DetailsScreen(navController: NavController, itemId: String?) {
-    //scroll,pause,delete
-    Column {
-        IconButton(onClick = {
-            navController.navigateUp()
-        }) {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_arrow_back_24),
-                contentDescription = null,
-                modifier = Modifier
-            )
-        }
-        Box(modifier = Modifier.fillMaxSize()){
-            Text(text="page of $itemId")
-        }
+    Log.d("ID", itemId.toString())
+    val taskId = itemId?.toLongOrNull()
+
+    if (taskId == null) {
+        // If taskId is invalid, show an error message or navigate back
+        Text("Invalid item selected")
+        return
     }
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(80.dp)
-            .fillMaxHeight()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item{SimpleFilledTextFieldSample()}
-        LuaService.INSTANCE?.let { svc ->
-            val engine = svc.engine
-            val tasks = engine.tasks
-            val idx=0
-            item{
+    val viewModel: TaskDetailsViewModel = viewModel(factory = TaskDetailsViewModelFactory(taskId))
+
+    // Observe task data from ViewModel
+    val task by viewModel.task.collectAsState()
+    if (task == null) {
+        // Loading or invalid task case
+        Text("Loading...")
+    } else {
+        Column {
+            IconButton(onClick = {
+                navController.navigateUp()
+            }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                )
+            }
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(80.dp)
+                .fillMaxHeight()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            item { SimpleFilledTextFieldSample(task!!) }
+
+            item {
                 Button(
-                    onClick = {tasks[idx].isPaused = false},
+                    onClick = { task!!.isPaused = false },
                     modifier = Modifier.fillMaxWidth()
-                ){
-                    Text(text="Start")
+                ) {
+                    Text(text = "Start")
                 }
             }
-            item{
+            item {
                 Button(
-                    onClick = {tasks[idx].isPaused = true},
+                    onClick = { task!!.isPaused = true },
                     modifier = Modifier.fillMaxWidth()
-                ){
-                    Text(text="Pause")
+                ) {
+                    Text(text = "Pause")
                 }
             }
-            item{
+            item {
                 Button(
                     onClick = {
-                        //need Delete action
+                        CoroutineScope(Dispatchers.IO).launch {
+                            ScriptDataManager.deleteAllScript(task!!)
+                        }
+                        navController.navigateUp()
                     },
                     modifier = Modifier.fillMaxWidth()
-                ){
-                    Text(text="Delete")
+                ) {
+                    Text(text = "Delete")
                 }
             }
         }
     }
 }
+
 @Composable
-fun ViewItem(task:LuaEngine.LuaTask,index:Int,navController: NavController){
-    val str=task.name
-    var isToggle by remember{ mutableStateOf(!task.isPaused) }
-    val icon = if(isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
+fun ViewItem(task: ScriptReference, navController: NavController) {
+    val str = task.name
+    var isToggle by remember { mutableStateOf(!task.isPaused) }
+    val icon =
+        if (isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
     Row(
         modifier = Modifier
             .fillMaxSize()
             .padding(4.dp),
-    ){
+    ) {
         Button(
-            onClick = {navController.navigate("details/$index")},
+            onClick = { navController.navigate("details/${task.id}") },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF2C3E50), // 딥 블루
                 contentColor = Color.White
             ),
             modifier = Modifier.width(300.dp),
-            shape= RoundedCornerShape(0.dp)
-        ){
+            shape = RoundedCornerShape(0.dp)
+        ) {
             Text(str)
         }
         IconButton(
@@ -914,7 +926,7 @@ fun ViewItem(task:LuaEngine.LuaTask,index:Int,navController: NavController){
                 task.isPaused = !task.isPaused
 
                 isToggle = !isToggle
-                      },
+            },
         ) {
             Icon(
                 painter = painterResource(id = icon),
@@ -938,6 +950,7 @@ fun ViewItem(task:LuaEngine.LuaTask,index:Int,navController: NavController){
         }*/
     }
 }
+
 @Composable
 fun Screen1(navController: NavController) {
     Column(
@@ -951,15 +964,15 @@ fun Screen1(navController: NavController) {
                 .wrapContentHeight()
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
-        ){
+        ) {
             /*Button(onClick = { navController.navigate("main"){
                 popUpTo("screen1") {inclusive=true}
             } }) {
                 Text("메인 화면으로 돌아가기")
             }*/
             IconButton(onClick = {
-                navController.navigate("main"){
-                    popUpTo("screen1") {inclusive=true}
+                navController.navigate("main") {
+                    popUpTo("screen1") { inclusive = true }
                 }
             }) {
                 Icon(
@@ -969,26 +982,17 @@ fun Screen1(navController: NavController) {
                 )
             }
         }
+        val vm: ScriptViewModel = viewModel()
+        val tasks by vm.scripts.collectAsState()
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            LuaService.INSTANCE?.let { svc ->
-                val engine = svc.engine
-                val tasks = engine.tasks
-
-                // Add 5 items
-                items(tasks.size) { index ->
-                    /*Button({
-                        tasks[index].isPaused = !tasks[index].isPaused
-                        // Toast.makeText(svc, "Task ${tasks[index].name} clicked", Toast.LENGTH_LONG).show()
-                    }) {
-                        Text(text = "Task: ${tasks[index].name}")
-                    }*/
-                    ViewItem(task = tasks[index],index,navController)
-                }
+            items(tasks.size) { index ->
+                ViewItem(task = tasks[index], navController)
             }
         }
     }
@@ -1004,9 +1008,11 @@ fun Screen2(navController: NavController) {
     ) {
         Text(text = "이것은 화면 2입니다.")
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate("main"){
-            popUpTo("screen2") {inclusive=true}
-        } }) {
+        Button(onClick = {
+            navController.navigate("main") {
+                popUpTo("screen2") { inclusive = true }
+            }
+        }) {
             Text("메인 화면으로 돌아가기")
         }
     }
@@ -1022,9 +1028,11 @@ fun Screen3(navController: NavController) {
     ) {
         Text(text = "이것은 화면 3입니다.")
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate("main"){
-            popUpTo("screen3") {inclusive=true}
-        } }) {
+        Button(onClick = {
+            navController.navigate("main") {
+                popUpTo("screen3") { inclusive = true }
+            }
+        }) {
             Text("메인 화면으로 돌아가기")
         }
     }
@@ -1072,3 +1080,43 @@ data class ChatMessage(
     val role: String,
     val content: String
 )
+
+class ScriptViewModel : ViewModel() {
+    private val _scripts = MutableStateFlow<List<ScriptReference>>(emptyList())
+    val scripts: StateFlow<List<ScriptReference>> = _scripts
+
+    init {
+        // Room DB에서 데이터 불러오기
+        viewModelScope.launch {
+            ScriptDataManager.getAllScripts().collect { scriptList ->
+                _scripts.value = scriptList
+            }
+        }
+    }
+}
+
+class TaskDetailsViewModel(private val taskId: Long) : ViewModel() {
+
+    private val _task = MutableStateFlow<ScriptReference?>(null)
+    val task: StateFlow<ScriptReference?> = _task
+
+    init {
+        viewModelScope.launch {
+            // Collect task data from the DAO using ScriptDataManager
+            ScriptDataManager.getTaskById(taskId).collect { taskData ->
+                Log.d("C", "Collected: ${taskData}")
+                _task.value = taskData
+            }
+        }
+    }
+}
+
+class TaskDetailsViewModelFactory(private val taskId: Long) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(TaskDetailsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return TaskDetailsViewModel(taskId) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
