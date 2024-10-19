@@ -1,6 +1,5 @@
 package net.projectlcs.lcs
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
@@ -1104,7 +1103,6 @@ class TaskDetailsViewModel(private val taskId: Long) : ViewModel() {
         viewModelScope.launch {
             // Collect task data from the DAO using ScriptDataManager
             ScriptDataManager.getTaskById(taskId).collect { taskData ->
-                Log.d("C", "Collected: ${taskData}")
                 _task.value = taskData
             }
         }
