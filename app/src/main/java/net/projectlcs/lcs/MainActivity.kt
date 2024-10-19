@@ -894,7 +894,12 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
 
             item {
                 Button(
-                    onClick = { task!!.isPaused = false },
+                    onClick = {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            task!!.isPaused = false
+                            ScriptDataManager.updateAllScript(LuaService.INSTANCE?.engine, task!!)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "Start")
@@ -902,7 +907,12 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
             }
             item {
                 Button(
-                    onClick = { task!!.isPaused = true },
+                    onClick = {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            task!!.isPaused = true
+                            ScriptDataManager.updateAllScript(LuaService.INSTANCE?.engine, task!!)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "Pause")
@@ -949,7 +959,10 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
         }
         IconButton(
             onClick = {
-                task.isPaused = !task.isPaused
+                CoroutineScope(Dispatchers.IO).launch {
+                    task.isPaused = !task.isPaused
+                    ScriptDataManager.updateAllScript(LuaService.INSTANCE?.engine, task)
+                }
 
                 isToggle = !isToggle
             },

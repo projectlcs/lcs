@@ -1,5 +1,6 @@
 package net.projectlcs.lcs.data
 
+import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
@@ -86,7 +87,7 @@ object ScriptDataManager {
             CoroutineScope(LuaService.INSTANCE!!.luaDispatcher).launch {
                 engine.tasks.forEach {
                     val task = it as AndroidLuaEngine.AndroidLuaTask
-                    ref.firstOrNull { it == task.ref }?.let {
+                    ref.firstOrNull { it.id == task.ref.id }?.let {
                         task.remove()
                     }
                 }
@@ -110,7 +111,7 @@ object ScriptDataManager {
     fun deleteAllScript(vararg ref: ScriptReference) {
         LuaService.INSTANCE?.let { svc ->
             CoroutineScope(svc.luaDispatcher).launch {
-                svc.engine.tasks.removeIf { task -> ref.any { it == (task as AndroidLuaEngine.AndroidLuaTask).ref } }
+                svc.engine.tasks.removeIf { task -> ref.any { it.id == (task as AndroidLuaEngine.AndroidLuaTask).ref.id } }
             }
         }
         db.scriptReferenceDao().delete(*ref)
