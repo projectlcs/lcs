@@ -81,7 +81,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(kotlin("reflect"))
     implementation(libs.kotlinx.coroutines.android)
+
     implementation(libs.play.services.location)
+
+    implementation(libs.androidx.room)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     implementation(libs.luajit)
     // https://github.com/gradle/gradle/issues/26468

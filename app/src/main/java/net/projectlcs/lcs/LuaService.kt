@@ -12,10 +12,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.projectlcs.lcs.data.ScriptDataManager
 import party.iroiro.luajava.LuaException
 import party.iroiro.luajava.luajit.LuaJit
 
-class LuaService: Service() {
+class LuaService : Service() {
     companion object {
         // Use context instead of its exact service for debugging purpose
         var INSTANCE: LuaService? = null
@@ -33,17 +34,36 @@ class LuaService: Service() {
         super.onCreate()
 
         (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
-            .createNotificationChannel(NotificationChannel("LCS_MAIN", "LCS main service", NotificationManager.IMPORTANCE_LOW))
+            .createNotificationChannel(
+                NotificationChannel(
+                    "LCS_MAIN",
+                    "LCS main service",
+                    NotificationManager.IMPORTANCE_LOW
+                )
+            )
 
-        startForeground(1, Notification.Builder(this, "LCS_MAIN")
-            .setContentTitle("LCS is running")
-            .setContentText("스크립트를 실행중입니다.")
-            .build())
+        startForeground(
+            1, Notification.Builder(this, "LCS_MAIN")
+                .setContentTitle("LCS is running")
+                .setContentText("스크립트를 실행중입니다.")
+                .build()
+        )
 
         INSTANCE = this
 
         job = CoroutineScope(luaDispatcher).launch {
             try {
+                ScriptDataManager.getAllScripts().forEach {
+                    if(it.isValid) {
+                        engine.createTask(
+                            code = it.code,
+                            name = it.name,
+                            ref = it,
+                            repeat = true
+                        ).isPaused = it.isPaused
+                    }
+                }
+                /*
                 // TODO: https://stackoverflow.com/questions/78922796/frequent-crashes-in-internshrstr-after-multiple-executions-of-lua-script-using-l
                 engine.createTask(testScript ?: resources.assets.open("test.lua").readBytes().decodeToString(), "test", true)
 
@@ -53,14 +73,16 @@ class LuaService: Service() {
                         debug_log("03")
                 """.trimIndent(),  "2", true)
 
-            } catch(e: LuaException) {
+
+                 */
+            } catch (e: LuaException) {
                 Log.e("LUA_LOAD", "Lua exception on script loading: ${e.type}, ${e.message}")
             }
 
-            while(true) {
+            while (true) {
                 try {
                     engine.loop()
-                } catch(e: LuaException) {
+                } catch (e: LuaException) {
                     Log.e("Lua Runtime", ("Error: " + e.message))
                     // throw e
                 }

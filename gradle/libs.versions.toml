@@ -18,6 +18,7 @@ ksp-api = "2.0.0-1.0.21"
 navigationRuntimeKtx = "2.8.2"
 navigationCompose = "2.8.2"
 playServicesLocation = "21.3.0"
+room = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,7 +43,9 @@ luajit = { module = "party.iroiro.luajava:luajit", version.ref = "luajit" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
-
+androidx-room = {module = "androidx.room:room-runtime", version.ref = "room"}
+androidx-room-ktx = {module = "androidx.room:room-ktx", version.ref = "room"}
+androidx-room-compiler = {module = "androidx.room:room-compiler", version.ref = "room"}
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
