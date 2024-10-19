@@ -36,10 +36,6 @@ object Location: PermissionProvider, GMSHelper {
                 val result = await(client.lastLocation)
 
                 if (result != null) {
-                    Log.d(
-                        "Location",
-                        result.latitude.toString() + ", " + result.longitude + ", " + result.accuracy
-                    )
                     breakTask(result.latitude, result.longitude, result.accuracy)
                 } else {
                     Log.w("Location", "Cannot retrieve current location")
