@@ -13,6 +13,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,17 +26,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -46,8 +54,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -57,13 +70,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import net.projectlcs.lcs.data.ScriptDataManager
-import net.projectlcs.lcs.data.ScriptReference
+import me.ddayo.aris.LuaEngine
 import net.projectlcs.lcs.permission.PermissionRequestActivity
 import net.projectlcs.lcs.theme.LCSTheme
 import retrofit2.Retrofit
@@ -75,7 +83,7 @@ import retrofit2.http.POST
 
 class MainActivity : ComponentActivity() {
     companion object {
-        var context: MainActivity? = null
+        var context: Context? = null
             private set
     }
 
@@ -92,14 +100,14 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }*/
-            val navController = rememberNavController()
+            val navController=rememberNavController()
             NavHost(navController = navController, startDestination = "main") {
                 composable("main") { OpenAIApiTest(navController = navController) }
                 composable("screen1") { Screen1(navController = navController) }
                 composable("screen2") { Screen2(navController = navController) }
                 composable("screen3") { Screen3(navController = navController) }
                 composable("details/{itemId}") { navBackStackEntry ->
-                    DetailsScreen(navController, navBackStackEntry.arguments?.getString("itemId"))
+                    DetailsScreen(navController,navBackStackEntry.arguments?.getString("itemId"))
                 }
             }
         }
@@ -146,7 +154,7 @@ fun GreetingPreview() {
 
 //@Preview(showBackground = true)
 @Composable
-fun OpenAIApiTest(navController: NavController) {
+fun OpenAIApiTest(navController:NavController) {
     var isVisible by remember { mutableStateOf(true) }
     var apiResponse by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -647,88 +655,97 @@ fun OpenAIApiTest(navController: NavController) {
 
     """.trimIndent()
     val keyboardController = LocalSoftwareKeyboardController.current
-    Column(modifier = Modifier.padding(32.dp)) {
-        //Button({ isVisible = !isVisible }) {}
-        Row(
-            modifier = Modifier
-                .wrapContentHeight()
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Box(modifier = Modifier.size(100.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    keyboardController?.hide() // 외부를 클릭하면 키보드를 숨김
+                })
+            }
+    ){
+        Column(modifier = Modifier.padding(32.dp)) {
+            //Button({ isVisible = !isVisible }) {}
+            Row(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Box(modifier = Modifier.size(100.dp)) {
+                    IconButton(onClick = {
+                        //
+                    }, modifier = Modifier.fillMaxSize()) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_launcher),
+                            contentDescription = null,
+                            modifier = Modifier
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(128.dp))
+            Row(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
                 IconButton(onClick = {
-                    //
-                }, modifier = Modifier.fillMaxSize()) {
+                    isVisible = !isVisible
+                }, modifier = Modifier.wrapContentSize()) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_launcher),
+                        painter = painterResource(id = R.drawable.baseline_add_circle_outline_24),
                         contentDescription = null,
                         modifier = Modifier
                     )
                 }
             }
-        }
-        Spacer(modifier = Modifier.height(128.dp))
-        Row(
-            modifier = Modifier
-                .wrapContentHeight()
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            IconButton(onClick = {
-                isVisible = !isVisible
-            }, modifier = Modifier.wrapContentSize()) {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_add_circle_outline_24),
-                    contentDescription = null,
-                    modifier = Modifier
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        AnimatedVisibility(
-            visible = isVisible,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.End
+            Spacer(modifier = Modifier.height(16.dp))
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
             ) {
-                Button(
-                    onClick = { navController.navigate("screen1") },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2C3E50),
-                        contentColor = Color.White
-                    ),
-                    modifier = Modifier.width(200.dp)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.End
                 ) {
-                    Text(text = "스크립트 관리")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { navController.navigate("screen2") },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2C3E50),
-                        contentColor = Color.White
-                    ),
-                    modifier = Modifier.width(200.dp)
-                ) {
-                    Text(text = "템플릿 더보기")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { navController.navigate("screen3") },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2C3E50), // 딥 블루
-                        contentColor = Color.White
-                    ),
-                    modifier = Modifier.width(200.dp)
-                ) {
-                    Text(text = "권한 관리")
+                    Button(
+                        onClick = {navController.navigate("screen1")},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2C3E50),
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.width(200.dp)
+                    ) {
+                        Text(text = "스크립트 관리")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {navController.navigate("screen2")},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2C3E50),
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.width(200.dp)
+                    ) {
+                        Text(text = "템플릿 더보기")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {navController.navigate("screen3")},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2C3E50), // 딥 블루
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.width(200.dp)
+                    ) {
+                        Text(text = "권한 관리")
+                    }
                 }
             }
-        }
 
         if (isLoading) {
             CircularProgressIndicator()
@@ -815,20 +832,20 @@ fun OpenAIApiTest(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
-
 @Composable
-fun SimpleFilledTextFieldSample(task: ScriptReference) {
+fun SimpleFilledTextFieldSample() {
+    var text by remember { mutableStateOf("Hello") }
+
     TextField(
-        value = task.code,
-        onValueChange = {  },
+        value = text,
+        onValueChange = { text = it },
         label = { Text("Code Editor") },
         modifier = Modifier.fillMaxWidth()
     )
 }
-
 @Composable
 fun DetailsScreen(navController: NavController, itemId: String?) {
-    Log.d("ID", itemId.toString())
+    val keyboardController = LocalSoftwareKeyboardController.current
     val taskId = itemId?.toLongOrNull()
 
     if (taskId == null) {
@@ -867,57 +884,52 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
 
             item {
                 Button(
-                    onClick = { task!!.isPaused = false },
+                    onClick = {tasks[idx].isPaused = false},
                     modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Start")
+                ){
+                    Text(text="Start")
                 }
             }
-            item {
+            item{
                 Button(
-                    onClick = { task!!.isPaused = true },
+                    onClick = {tasks[idx].isPaused = true},
                     modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Pause")
+                ){
+                    Text(text="Pause")
                 }
             }
-            item {
+            item{
                 Button(
                     onClick = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            ScriptDataManager.deleteAllScript(task!!)
-                        }
-                        navController.navigateUp()
+                        //need Delete action
                     },
                     modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Delete")
+                ){
+                    Text(text="Delete")
                 }
             }
         }
     }
 }
-
 @Composable
-fun ViewItem(task: ScriptReference, navController: NavController) {
-    val str = task.name
-    var isToggle by remember { mutableStateOf(!task.isPaused) }
-    val icon =
-        if (isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
+fun ViewItem(task:LuaEngine.LuaTask,index:Int,navController: NavController){
+    val str=task.name
+    var isToggle by remember{ mutableStateOf(!task.isPaused) }
+    val icon = if(isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
     Row(
         modifier = Modifier
             .fillMaxSize()
             .padding(4.dp),
-    ) {
+    ){
         Button(
-            onClick = { navController.navigate("details/${task.id}") },
+            onClick = {navController.navigate("details/$index")},
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF2C3E50), // 딥 블루
                 contentColor = Color.White
             ),
             modifier = Modifier.width(300.dp),
-            shape = RoundedCornerShape(0.dp)
-        ) {
+            shape= RoundedCornerShape(0.dp)
+        ){
             Text(str)
         }
         IconButton(
@@ -925,7 +937,7 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
                 task.isPaused = !task.isPaused
 
                 isToggle = !isToggle
-            },
+                      },
         ) {
             Icon(
                 painter = painterResource(id = icon),
@@ -949,7 +961,6 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
         }*/
     }
 }
-
 @Composable
 fun Screen1(navController: NavController) {
     Column(
@@ -963,15 +974,15 @@ fun Screen1(navController: NavController) {
                 .wrapContentHeight()
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
-        ) {
+        ){
             /*Button(onClick = { navController.navigate("main"){
                 popUpTo("screen1") {inclusive=true}
             } }) {
                 Text("메인 화면으로 돌아가기")
             }*/
             IconButton(onClick = {
-                navController.navigate("main") {
-                    popUpTo("screen1") { inclusive = true }
+                navController.navigate("main"){
+                    popUpTo("screen1") {inclusive=true}
                 }
             }) {
                 Icon(
@@ -981,17 +992,26 @@ fun Screen1(navController: NavController) {
                 )
             }
         }
-        val vm: ScriptViewModel = viewModel()
-        val tasks by vm.scripts.collectAsState()
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(tasks.size) { index ->
-                ViewItem(task = tasks[index], navController)
+            LuaService.INSTANCE?.let { svc ->
+                val engine = svc.engine
+                val tasks = engine.tasks
+
+                // Add 5 items
+                items(tasks.size) { index ->
+                    /*Button({
+                        tasks[index].isPaused = !tasks[index].isPaused
+                        // Toast.makeText(svc, "Task ${tasks[index].name} clicked", Toast.LENGTH_LONG).show()
+                    }) {
+                        Text(text = "Task: ${tasks[index].name}")
+                    }*/
+                    ViewItem(task = tasks[index],index,navController)
+                }
             }
         }
     }
@@ -1007,11 +1027,9 @@ fun Screen2(navController: NavController) {
     ) {
         Text(text = "이것은 화면 2입니다.")
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            navController.navigate("main") {
-                popUpTo("screen2") { inclusive = true }
-            }
-        }) {
+        Button(onClick = { navController.navigate("main"){
+            popUpTo("screen2") {inclusive=true}
+        } }) {
             Text("메인 화면으로 돌아가기")
         }
     }
@@ -1027,11 +1045,9 @@ fun Screen3(navController: NavController) {
     ) {
         Text(text = "이것은 화면 3입니다.")
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            navController.navigate("main") {
-                popUpTo("screen3") { inclusive = true }
-            }
-        }) {
+        Button(onClick = { navController.navigate("main"){
+            popUpTo("screen3") {inclusive=true}
+        } }) {
             Text("메인 화면으로 돌아가기")
         }
     }
