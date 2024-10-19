@@ -70,8 +70,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import me.ddayo.aris.LuaEngine
+import net.projectlcs.lcs.data.ScriptDataManager
+import net.projectlcs.lcs.data.ScriptReference
 import net.projectlcs.lcs.permission.PermissionRequestActivity
 import net.projectlcs.lcs.theme.LCSTheme
 import retrofit2.Retrofit
@@ -83,7 +89,7 @@ import retrofit2.http.POST
 
 class MainActivity : ComponentActivity() {
     companion object {
-        var context: Context? = null
+        var context: MainActivity? = null
             private set
     }
 
@@ -100,14 +106,14 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }*/
-            val navController=rememberNavController()
+            val navController = rememberNavController()
             NavHost(navController = navController, startDestination = "main") {
                 composable("main") { OpenAIApiTest(navController = navController) }
                 composable("screen1") { Screen1(navController = navController) }
                 composable("screen2") { Screen2(navController = navController) }
                 composable("screen3") { Screen3(navController = navController) }
                 composable("details/{itemId}") { navBackStackEntry ->
-                    DetailsScreen(navController,navBackStackEntry.arguments?.getString("itemId"))
+                    DetailsScreen(navController, navBackStackEntry.arguments?.getString("itemId"))
                 }
             }
         }
@@ -154,7 +160,7 @@ fun GreetingPreview() {
 
 //@Preview(showBackground = true)
 @Composable
-fun OpenAIApiTest(navController:NavController) {
+fun OpenAIApiTest(navController: NavController) {
     var isVisible by remember { mutableStateOf(true) }
     var apiResponse by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -663,7 +669,7 @@ fun OpenAIApiTest(navController:NavController) {
                     keyboardController?.hide() // 외부를 클릭하면 키보드를 숨김
                 })
             }
-    ){
+    ) {
         Column(modifier = Modifier.padding(32.dp)) {
             //Button({ isVisible = !isVisible }) {}
             Row(
@@ -713,7 +719,7 @@ fun OpenAIApiTest(navController:NavController) {
                     horizontalAlignment = Alignment.End
                 ) {
                     Button(
-                        onClick = {navController.navigate("screen1")},
+                        onClick = { navController.navigate("screen1") },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF2C3E50),
                             contentColor = Color.White
@@ -724,7 +730,7 @@ fun OpenAIApiTest(navController:NavController) {
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = {navController.navigate("screen2")},
+                        onClick = { navController.navigate("screen2") },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF2C3E50),
                             contentColor = Color.White
@@ -735,7 +741,7 @@ fun OpenAIApiTest(navController:NavController) {
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = {navController.navigate("screen3")},
+                        onClick = { navController.navigate("screen3") },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF2C3E50), // 딥 블루
                             contentColor = Color.White
@@ -747,42 +753,42 @@ fun OpenAIApiTest(navController:NavController) {
                 }
             }
 
-        if (isLoading) {
-            CircularProgressIndicator()
-        } else {
-            Text(apiResponse)
+            if (isLoading) {
+                CircularProgressIndicator()
+            } else {
+                Text(apiResponse)
+            }
         }
-    }
 
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalAlignment = Alignment.Bottom
-    ) {
         Row(
             modifier = Modifier
-                .wrapContentHeight()
-                .fillMaxWidth(),
+                .fillMaxSize()
+                .padding(16.dp),
             verticalAlignment = Alignment.Bottom
         ) {
-            TextField(
-                value = inputText,
-                onValueChange = { inputText = it },
-                label = { Text("요구사항을 입력하세요") },
+            Row(
                 modifier = Modifier
-            )
+                    .wrapContentHeight()
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                TextField(
+                    value = inputText,
+                    onValueChange = { inputText = it },
+                    label = { Text("요구사항을 입력하세요") },
+                    modifier = Modifier
+                )
 
-            //Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.align(Alignment.CenterVertically)) {
-                Button(
-                    onClick = {
-                        keyboardController?.hide()
-                        coroutineScope.launch {
-                            isLoading = true
-                            apiResponse = try {
-                                var response = testOpenAIApi(
-                                    """
+                //Spacer(modifier = Modifier.height(16.dp))
+                Row(modifier = Modifier.align(Alignment.CenterVertically)) {
+                    Button(
+                        onClick = {
+                            keyboardController?.hide()
+                            coroutineScope.launch {
+                                isLoading = true
+                                apiResponse = try {
+                                    var response = testOpenAIApi(
+                                        """
                             안드로이드 스튜디오에서 작업중입니다. 
                             맨 아래의 요구사항에는 안드로이드에서 사용가능한 기능을 자연어로 입력될것 입니다. 
                             요구사항에 맞는 루아 스크립트를 작성해주세요. 
@@ -795,46 +801,48 @@ fun OpenAIApiTest(navController:NavController) {
                             코드형식으로 반환해주세요.
                             주석이나 설명은 빼주세요.
                             """.trimIndent()
-                                )
+                                    )
 
-                                response = response.removePrefix("```lua")
+                                    response = response.removePrefix("```lua")
 
-                                // Trim the "```" from both ends
-                                response = response.removePrefix("```").removeSuffix("```")
-                                response = response.removePrefix("\n").removeSuffix("\n")
-                                Log.d("OpenAIApiTest", "API 연동 성공: $response")
+                                    // Trim the "```" from both ends
+                                    response = response.removePrefix("```").removeSuffix("```")
+                                    response = response.removePrefix("\n").removeSuffix("\n")
+                                    Log.d("OpenAIApiTest", "API 연동 성공: $response")
 
-                                LuaService.testScript = response
-                                MainActivity.context?.run {
-                                    stopService(Intent(this, LuaService::class.java))
-                                    startForegroundService(Intent(this, LuaService::class.java))
+                                    LuaService.testScript = response
+                                    MainActivity.context?.run {
+                                        stopService(Intent(this, LuaService::class.java))
+                                        startForegroundService(Intent(this, LuaService::class.java))
+                                    }
+                                    "API 연동 성공: $response"
+                                } catch (e: Exception) {
+                                    "API 연동 실패: ${e.message}"
                                 }
-                                "API 연동 성공: $response"
-                            } catch (e: Exception) {
-                                "API 연동 실패: ${e.message}"
+                                isLoading = false
                             }
-                            isLoading = false
-                        }
-                    },
-                    modifier = Modifier.wrapContentHeight()
-                ) {
-                    //Text("test")
-                    Image(
-                        painter = painterResource(id = R.drawable.baseline_send_24),
-                        contentDescription = null,
-                        modifier = Modifier
-                    )
+                        },
+                        modifier = Modifier.wrapContentHeight()
+                    ) {
+                        //Text("test")
+                        Image(
+                            painter = painterResource(id = R.drawable.baseline_send_24),
+                            contentDescription = null,
+                            modifier = Modifier
+                        )
+                    }
                 }
             }
+
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
-
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
+
 @Composable
-fun SimpleFilledTextFieldSample() {
-    var text by remember { mutableStateOf("Hello") }
+fun SimpleFilledTextFieldSample(task: ScriptReference) {
+    var text by remember { mutableStateOf(task.code) }
 
     TextField(
         value = text,
@@ -843,6 +851,7 @@ fun SimpleFilledTextFieldSample() {
         modifier = Modifier.fillMaxWidth()
     )
 }
+
 @Composable
 fun DetailsScreen(navController: NavController, itemId: String?) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -853,7 +862,8 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
         Text("Invalid item selected")
         return
     }
-    val viewModel: TaskDetailsViewModel = viewModel(factory = TaskDetailsViewModelFactory(taskId))
+    val viewModel: TaskDetailsViewModel =
+        viewModel(factory = TaskDetailsViewModelFactory(taskId))
 
     // Observe task data from ViewModel
     val task by viewModel.task.collectAsState()
@@ -884,52 +894,57 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
 
             item {
                 Button(
-                    onClick = {tasks[idx].isPaused = false},
+                    onClick = { task!!.isPaused = false },
                     modifier = Modifier.fillMaxWidth()
-                ){
-                    Text(text="Start")
+                ) {
+                    Text(text = "Start")
                 }
             }
-            item{
+            item {
                 Button(
-                    onClick = {tasks[idx].isPaused = true},
+                    onClick = { task!!.isPaused = true },
                     modifier = Modifier.fillMaxWidth()
-                ){
-                    Text(text="Pause")
+                ) {
+                    Text(text = "Pause")
                 }
             }
-            item{
+            item {
                 Button(
                     onClick = {
-                        //need Delete action
+                        navController.navigateUp()
+                        CoroutineScope(Dispatchers.IO).launch {
+                            ScriptDataManager.deleteAllScript(task!!)
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
-                ){
-                    Text(text="Delete")
+                ) {
+                    Text(text = "Delete")
                 }
             }
         }
     }
 }
+
 @Composable
-fun ViewItem(task:LuaEngine.LuaTask,index:Int,navController: NavController){
-    val str=task.name
-    var isToggle by remember{ mutableStateOf(!task.isPaused) }
-    val icon = if(isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
+fun ViewItem(task: ScriptReference, navController: NavController) {
+    val str = task.name
+    var isToggle by remember { mutableStateOf(!task.isPaused) }
+    val icon =
+        if (isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
     Row(
         modifier = Modifier
             .fillMaxSize()
             .padding(4.dp),
-    ){
+    ) {
         Button(
-            onClick = {navController.navigate("details/$index")},
+            onClick = { navController.navigate("details/${task.id}") },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF2C3E50), // 딥 블루
                 contentColor = Color.White
             ),
             modifier = Modifier.width(300.dp),
-            shape= RoundedCornerShape(0.dp)
-        ){
+            shape = RoundedCornerShape(0.dp)
+        ) {
             Text(str)
         }
         IconButton(
@@ -937,7 +952,7 @@ fun ViewItem(task:LuaEngine.LuaTask,index:Int,navController: NavController){
                 task.isPaused = !task.isPaused
 
                 isToggle = !isToggle
-                      },
+            },
         ) {
             Icon(
                 painter = painterResource(id = icon),
@@ -961,8 +976,12 @@ fun ViewItem(task:LuaEngine.LuaTask,index:Int,navController: NavController){
         }*/
     }
 }
+
 @Composable
 fun Screen1(navController: NavController) {
+    val vm: ScriptViewModel = viewModel()
+    val tasks by vm.scripts.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -974,15 +993,15 @@ fun Screen1(navController: NavController) {
                 .wrapContentHeight()
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
-        ){
+        ) {
             /*Button(onClick = { navController.navigate("main"){
                 popUpTo("screen1") {inclusive=true}
             } }) {
                 Text("메인 화면으로 돌아가기")
             }*/
             IconButton(onClick = {
-                navController.navigate("main"){
-                    popUpTo("screen1") {inclusive=true}
+                navController.navigate("main") {
+                    popUpTo("screen1") { inclusive = true }
                 }
             }) {
                 Icon(
@@ -998,20 +1017,9 @@ fun Screen1(navController: NavController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            LuaService.INSTANCE?.let { svc ->
-                val engine = svc.engine
-                val tasks = engine.tasks
-
-                // Add 5 items
-                items(tasks.size) { index ->
-                    /*Button({
-                        tasks[index].isPaused = !tasks[index].isPaused
-                        // Toast.makeText(svc, "Task ${tasks[index].name} clicked", Toast.LENGTH_LONG).show()
-                    }) {
-                        Text(text = "Task: ${tasks[index].name}")
-                    }*/
-                    ViewItem(task = tasks[index],index,navController)
-                }
+            // Add 5 items
+            items(tasks.size) { index ->
+                ViewItem(task = tasks[index], navController)
             }
         }
     }
@@ -1027,9 +1035,11 @@ fun Screen2(navController: NavController) {
     ) {
         Text(text = "이것은 화면 2입니다.")
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate("main"){
-            popUpTo("screen2") {inclusive=true}
-        } }) {
+        Button(onClick = {
+            navController.navigate("main") {
+                popUpTo("screen2") { inclusive = true }
+            }
+        }) {
             Text("메인 화면으로 돌아가기")
         }
     }
@@ -1045,9 +1055,11 @@ fun Screen3(navController: NavController) {
     ) {
         Text(text = "이것은 화면 3입니다.")
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate("main"){
-            popUpTo("screen3") {inclusive=true}
-        } }) {
+        Button(onClick = {
+            navController.navigate("main") {
+                popUpTo("screen3") { inclusive = true }
+            }
+        }) {
             Text("메인 화면으로 돌아가기")
         }
     }
