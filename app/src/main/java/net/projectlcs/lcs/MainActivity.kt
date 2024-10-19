@@ -76,7 +76,7 @@ import retrofit2.http.POST
 
 class MainActivity : ComponentActivity() {
     companion object {
-        var context: Context? = null
+        var context: MainActivity? = null
             private set
     }
 
