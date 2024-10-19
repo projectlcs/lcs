@@ -17,6 +17,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -56,6 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.VerticalAlignmentLine
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -64,6 +68,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import me.ddayo.aris.LuaEngine
 import net.projectlcs.lcs.permission.PermissionRequestActivity
 import net.projectlcs.lcs.theme.LCSTheme
 import retrofit2.Retrofit
@@ -98,6 +103,9 @@ class MainActivity : ComponentActivity() {
                 composable("screen1") { Screen1(navController = navController) }
                 composable("screen2") { Screen2(navController = navController) }
                 composable("screen3") { Screen3(navController = navController) }
+                composable("details/{itemId}") { navBackStackEntry ->
+                    DetailsScreen(navController,navBackStackEntry.arguments?.getString("itemId"))
+                }
             }
         }
     }
@@ -643,7 +651,7 @@ fun OpenAIApiTest(navController:NavController) {
 
 
     """.trimIndent()
-
+    val keyboardController = LocalSoftwareKeyboardController.current
     Column(modifier = Modifier.padding(32.dp)) {
         //Button({ isVisible = !isVisible }) {}
         Row(
@@ -755,6 +763,7 @@ fun OpenAIApiTest(navController:NavController) {
             Row(modifier = Modifier.align(Alignment.CenterVertically)) {
                 Button(
                     onClick = {
+                        keyboardController?.hide()
                         coroutineScope.launch {
                             isLoading = true
                             apiResponse = try {
@@ -810,6 +819,126 @@ fun OpenAIApiTest(navController:NavController) {
     }
 }
 @Composable
+fun SimpleFilledTextFieldSample() {
+    var text by remember { mutableStateOf("Hello") }
+
+    TextField(
+        value = text,
+        onValueChange = { text = it },
+        label = { Text("Code Editor") },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+@Composable
+fun DetailsScreen(navController: NavController, itemId: String?) {
+    //scroll,pause,delete
+    Column {
+        IconButton(onClick = {
+            navController.navigateUp()
+        }) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                contentDescription = null,
+                modifier = Modifier
+            )
+        }
+        Box(modifier = Modifier.fillMaxSize()){
+            Text(text="page of $itemId")
+        }
+    }
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(80.dp)
+            .fillMaxHeight()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item{SimpleFilledTextFieldSample()}
+        LuaService.INSTANCE?.let { svc ->
+            val engine = svc.engine
+            val tasks = engine.tasks
+            val idx=0
+            item{
+                Button(
+                    onClick = {tasks[idx].isPaused = false},
+                    modifier = Modifier.fillMaxWidth()
+                ){
+                    Text(text="Start")
+                }
+            }
+            item{
+                Button(
+                    onClick = {tasks[idx].isPaused = true},
+                    modifier = Modifier.fillMaxWidth()
+                ){
+                    Text(text="Pause")
+                }
+            }
+            item{
+                Button(
+                    onClick = {
+                        //need Delete action
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ){
+                    Text(text="Delete")
+                }
+            }
+        }
+    }
+}
+@Composable
+fun ViewItem(task:LuaEngine.LuaTask,index:Int,navController: NavController){
+    val str=task.name
+    var isToggle by remember{ mutableStateOf(!task.isPaused) }
+    val icon = if(isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(4.dp),
+    ){
+        Button(
+            onClick = {navController.navigate("details/$index")},
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF2C3E50), // 딥 블루
+                contentColor = Color.White
+            ),
+            modifier = Modifier.width(300.dp),
+            shape= RoundedCornerShape(0.dp)
+        ){
+            Text(str)
+        }
+        IconButton(
+            onClick = {
+                task.isPaused = !task.isPaused
+
+                isToggle = !isToggle
+                      },
+        ) {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier
+            )
+        }
+        /*Button(
+            onClick = {task.isPaused = !task.isPaused},
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFEF5350), // 딥 블루
+                contentColor = Color.White
+            ),
+            ){
+
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_pause_circle_outline_24),
+                contentDescription = null,
+                modifier = Modifier
+            )
+        }*/
+    }
+}
+@Composable
 fun Screen1(navController: NavController) {
     Column(
         modifier = Modifier
@@ -823,10 +952,21 @@ fun Screen1(navController: NavController) {
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
         ){
-            Button(onClick = { navController.navigate("main"){
+            /*Button(onClick = { navController.navigate("main"){
                 popUpTo("screen1") {inclusive=true}
             } }) {
                 Text("메인 화면으로 돌아가기")
+            }*/
+            IconButton(onClick = {
+                navController.navigate("main"){
+                    popUpTo("screen1") {inclusive=true}
+                }
+            }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                )
             }
         }
         LazyColumn(
@@ -841,12 +981,13 @@ fun Screen1(navController: NavController) {
 
                 // Add 5 items
                 items(tasks.size) { index ->
-                    Button({
+                    /*Button({
                         tasks[index].isPaused = !tasks[index].isPaused
                         // Toast.makeText(svc, "Task ${tasks[index].name} clicked", Toast.LENGTH_LONG).show()
                     }) {
                         Text(text = "Task: ${tasks[index].name}")
-                    }
+                    }*/
+                    ViewItem(task = tasks[index],index,navController)
                 }
             }
         }
