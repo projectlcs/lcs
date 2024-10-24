@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import me.ddayo.aris.luagen.LuaFunction
 import me.ddayo.aris.luagen.LuaProvider
+import net.projectlcs.lcs.AndroidLuaEngine
 import net.projectlcs.lcs.LuaService
 import net.projectlcs.lcs.R
 import net.projectlcs.lcs.functions.PermissionProvider
@@ -43,6 +44,10 @@ object Notification: PermissionProvider {
             NotificationManagerCompat.from(LuaService.INSTANCE!!).notify(2, notification)
         }
     }
+
+    @LuaFunction("send_notification_auto")
+    fun sendNotification(task: AndroidLuaEngine.AndroidLuaTask, message: String)
+        = sendNotification(task.name, message)
 
     /**
      * Send long toast message
