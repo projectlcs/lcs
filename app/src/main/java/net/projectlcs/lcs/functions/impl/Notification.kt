@@ -17,19 +17,30 @@ import net.projectlcs.lcs.permission.PermissionRequestActivity
 
 @LuaProvider
 object Notification: PermissionProvider {
+    /**
+     * Send notification with existing task
+     *
+     * @param task the LuaTask. just use `task` which already passed to function.
+     * @param message message to send
+     */
+    @LuaFunction("send_notification")
+    fun sendNotification(task: AndroidLuaEngine.AndroidLuaTask, message: String)
+            = sendNotification(task, task.name, message)
+
     @SuppressLint("MissingPermission") // requestPermission lambda asserts permission
     @LuaFunction(name = "send_notification")
             /**
              * Send notification with provided title and text
              *
+             * @param task the LuaTask. just use `task` which already passed to function.
              * @param title title of notification
              * @param text inner text of notification
              */
-    fun sendNotification(title: String, text: String) = coroutine<Nothing> {
+    fun sendNotification(task: AndroidLuaEngine.AndroidLuaTask, title: String, text: String) = coroutine<Nothing> {
         requestPermission {
-            val channelId = "LUA_CALL" // TODO: set this by task name
-            val channel = NotificationChannel(channelId, "Notification from script", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Notifications from script"
+            val channelId = task.name
+            val channel = NotificationChannel(channelId, "Notification from script ${task.name}", NotificationManager.IMPORTANCE_HIGH).apply {
+                description = "Notifications from script ${task.name}"
             }
             val notificationManager = LuaService.INSTANCE!!.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
@@ -44,10 +55,6 @@ object Notification: PermissionProvider {
             NotificationManagerCompat.from(LuaService.INSTANCE!!).notify(2, notification)
         }
     }
-
-    @LuaFunction("send_notification_auto")
-    fun sendNotification(task: AndroidLuaEngine.AndroidLuaTask, message: String)
-        = sendNotification(task.name, message)
 
     /**
      * Send long toast message

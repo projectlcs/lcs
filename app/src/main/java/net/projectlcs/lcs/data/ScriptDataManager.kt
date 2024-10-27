@@ -1,6 +1,5 @@
 package net.projectlcs.lcs.data
 
-import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
