@@ -7,7 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import net.projectlcs.lcs.functions.impl.DND
 import net.projectlcs.lcs.permission.PermissionRequestActivity
 
-class NotificationPolicyPermission : IPermission() {
+object NotificationPolicyPermission : IPermission() {
     override fun init(activity: PermissionRequestActivity) =
         activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if(DND.verifyPermission())

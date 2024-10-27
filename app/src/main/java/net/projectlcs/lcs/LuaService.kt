@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +48,8 @@ class LuaService : Service() {
             1, Notification.Builder(this, "LCS_MAIN")
                 .setContentTitle("LCS is running")
                 .setContentText("스크립트를 실행중입니다.")
-                .build()
+                .build(),
+            0 or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
         )
 
         INSTANCE = this
@@ -73,7 +75,7 @@ class LuaService : Service() {
                 val sc = ScriptDataManager.createNewScript("Test1")
                 sc.code =
                     testScript ?: resources.assets.open("test.lua").readBytes().decodeToString()
-                ScriptDataManager.updateAllScript(engine, sc)
+                ScriptDataManager.updateAllScript(sc)
                 Log.e("Update", "updated")
             }
 

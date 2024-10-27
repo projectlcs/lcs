@@ -98,14 +98,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            /*LCSTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }*/
             val navController = rememberNavController()
             NavHost(navController = navController, startDestination = "main") {
                 composable("main") { OpenAIApiTest(navController = navController) }
@@ -139,21 +131,6 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         context = null
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Composable
-fun GreetingPreview() {
-    LCSTheme {
-        Greeting("Android")
     }
 }
 
@@ -906,7 +883,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                     onClick = {
                         CoroutineScope(Dispatchers.IO).launch {
                             task!!.isPaused = false
-                            ScriptDataManager.updateAllScript(LuaService.INSTANCE?.engine, task!!)
+                            ScriptDataManager.updateAllScript(task!!)
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -919,7 +896,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                     onClick = {
                         CoroutineScope(Dispatchers.IO).launch {
                             task!!.isPaused = true
-                            ScriptDataManager.updateAllScript(LuaService.INSTANCE?.engine, task!!)
+                            ScriptDataManager.updateAllScript(task!!)
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -970,7 +947,7 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
                     task.isPaused = !task.isPaused
-                    ScriptDataManager.updateAllScript(LuaService.INSTANCE?.engine, task)
+                    ScriptDataManager.updateAllScript(task, invalidateExisting = false)
                 }
 
                 isToggle = !isToggle

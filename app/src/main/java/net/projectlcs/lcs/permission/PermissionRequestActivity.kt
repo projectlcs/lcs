@@ -15,6 +15,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import net.projectlcs.lcs.Util.requireSdk
+import net.projectlcs.lcs.Util.requireSdkOrNull
+import net.projectlcs.lcs.data.ScriptReference
 import net.projectlcs.lcs.permission.impl.DangerousPermission
 import net.projectlcs.lcs.permission.impl.DrawOverlayPermission
 import net.projectlcs.lcs.permission.impl.IPermission
@@ -26,6 +29,7 @@ import net.projectlcs.lcs.permission.ui.theme.LCSTheme
 class PermissionRequestActivity : ComponentActivity() {
     companion object {
         const val REQUEST_PERMISSION = "request_permission"
+        const val TARGET_REFERENCE = "target_reference"
         const val REQUEST_NOTIFICATION_PERMISSION = 1
         const val REQUEST_NOTIFICATION_POLICY_PERMISSION = 3
         const val REQUEST_DRAW_OVERLAY_PERMISSION = 4
@@ -38,16 +42,11 @@ class PermissionRequestActivity : ComponentActivity() {
                     android.Manifest.permission.POST_NOTIFICATIONS
                 )
             },
-            REQUEST_NOTIFICATION_POLICY_PERMISSION to NotificationPolicyPermission(),
-            REQUEST_DRAW_OVERLAY_PERMISSION to DrawOverlayPermission(),
+            REQUEST_NOTIFICATION_POLICY_PERMISSION to NotificationPolicyPermission,
+            REQUEST_DRAW_OVERLAY_PERMISSION to DrawOverlayPermission,
             REQUEST_FILE_MANAGE_PERMISSION to DangerousPermission(android.Manifest.permission.MANAGE_EXTERNAL_STORAGE),
-            REQUEST_LOCATION_PERMISSION to LocationPermission(),
+            REQUEST_LOCATION_PERMISSION to LocationPermission,
         )
-
-        private inline fun <T> requireSdkOrNull(version: Int, then: () -> T): T? {
-            return if (Build.VERSION.SDK_INT >= version) then()
-            else null
-        }
     }
 
     private val permissionToRequest: IPermission? by lazy {
@@ -59,6 +58,13 @@ class PermissionRequestActivity : ComponentActivity() {
 
     var permissionHandler: ActivityResultLauncher<*>? = null
         private set
+
+    val ref by lazy {
+        requireSdk(
+            Build.VERSION_CODES.TIRAMISU,
+            then = { intent.getParcelableExtra(TARGET_REFERENCE, ScriptReference::class.java) },
+            not = { intent.getParcelableExtra<ScriptReference>(TARGET_REFERENCE) })
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -7,7 +7,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import net.projectlcs.lcs.permission.PermissionRequestActivity
 
-class LocationPermission: IPermission() {
+object LocationPermission: IPermission() {
     override fun requestPermission(activity: PermissionRequestActivity) {
         val handler = activity.permissionHandler!! as ActivityResultLauncher<Intent>
         val intent = Intent(
