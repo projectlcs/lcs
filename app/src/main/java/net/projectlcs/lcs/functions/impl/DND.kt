@@ -13,13 +13,14 @@ import net.projectlcs.lcs.permission.PermissionRequestActivity
 
 
 @LuaProvider
-object DND: PermissionProvider {
+object DND : PermissionProvider {
     override fun verifyPermission(): Boolean {
         val notService = retrieveNotificationService()
         return notService?.isNotificationPolicyAccessGranted == true
     }
 
-    override fun requestPermission() = startPermissionActivity(PermissionRequestActivity.REQUEST_NOTIFICATION_POLICY_PERMISSION)
+    override fun requestPermission() =
+        startPermissionActivity(PermissionRequestActivity.REQUEST_NOTIFICATION_POLICY_PERMISSION)
 
     private fun retrieveNotificationService(): NotificationManager? {
         val service = LuaService.INSTANCE!!
@@ -38,8 +39,10 @@ object DND: PermissionProvider {
              See also: https://developer.android.com/about/versions/15/behavior-changes-15#dnd-changes
              */
             notService?.let {
-                if (VERSION.SDK_INT > VERSION_CODES.UPSIDE_DOWN_CAKE)
-                    Log.d("DND", "Android 15 can break some features")
+                /*
+                    if (VERSION.SDK_INT > VERSION_CODES.UPSIDE_DOWN_CAKE)
+                        Log.d("DND", "Android 15 can break some features")
+                 */
                 it.setInterruptionFilter(
                     if (newValue)
                         NotificationManager.INTERRUPTION_FILTER_NONE
