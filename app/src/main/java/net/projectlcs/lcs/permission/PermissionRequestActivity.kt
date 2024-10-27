@@ -59,6 +59,13 @@ class PermissionRequestActivity : ComponentActivity() {
     var permissionHandler: ActivityResultLauncher<*>? = null
         private set
 
+    val ref by lazy {
+        requireSdk(
+            Build.VERSION_CODES.TIRAMISU,
+            then = { intent.getParcelableExtra(TARGET_REFERENCE, ScriptReference::class.java) },
+            not = { intent.getParcelableExtra<ScriptReference>(TARGET_REFERENCE) })
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

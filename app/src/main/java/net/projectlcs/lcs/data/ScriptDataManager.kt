@@ -1,5 +1,8 @@
 package net.projectlcs.lcs.data
 
+import android.os.Build
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
@@ -18,6 +21,7 @@ import kotlinx.coroutines.launch
 import net.projectlcs.lcs.AndroidLuaEngine
 import net.projectlcs.lcs.LCS
 import net.projectlcs.lcs.LuaService
+import net.projectlcs.lcs.Util.requireSdk
 import java.time.LocalDateTime
 
 /**
@@ -34,8 +38,50 @@ data class ScriptReference(
     @ColumnInfo("last_modify_date") var lastModifyDate: LocalDateTime,
     @ColumnInfo("is_paused") var isPaused: Boolean,
     @ColumnInfo("is_valid") var isValid: Boolean,
+    @ColumnInfo("storage_access") var storageAccess: MutableList<String>,
     @PrimaryKey(autoGenerate = true) var id: Long = 0,
-)
+) : Parcelable {
+    companion object {
+        @JvmField
+        val CREATOR = object : Parcelable.Creator<ScriptReference> {
+            override fun createFromParcel(source: Parcel?) = source?.let {
+                ScriptReference(
+                    it.readString()!!,
+                    it.readString()!!,
+                    requireSdk(
+                        Build.VERSION_CODES.TIRAMISU,
+                        then = { it.readSerializable(null, LocalDateTime::class.java)!! },
+                        not = { it.readSerializable() as LocalDateTime }),
+                    requireSdk(
+                        Build.VERSION_CODES.TIRAMISU,
+                        then = { it.readSerializable(null, LocalDateTime::class.java)!! },
+                        not = { it.readSerializable() as LocalDateTime }),
+                    it.readBoolean(),
+                    it.readBoolean(),
+                    (0 until it.readInt()).map { _ -> it.readString()!! }.toMutableList(),
+                    it.readLong()
+                )
+            }
+
+            override fun newArray(size: Int) =
+                (1..size).map { null }.toTypedArray<ScriptReference?>()
+        }
+    }
+
+    override fun describeContents() = 0
+
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeString(code)
+        dest.writeString(name)
+        dest.writeSerializable(createDate)
+        dest.writeSerializable(lastModifyDate)
+        dest.writeBoolean(isPaused)
+        dest.writeBoolean(isValid)
+        dest.writeInt(storageAccess.size)
+        storageAccess.forEach { dest.writeString(it) }
+        dest.writeLong(id)
+    }
+}
 
 @Dao
 interface ScriptReferenceDao {
@@ -55,7 +101,7 @@ interface ScriptReferenceDao {
     fun update(vararg references: ScriptReference)
 }
 
-@TypeConverters(LocalDateTimeConverter::class)
+@TypeConverters(LocalDateTimeConverter::class, MutableListConverter::class)
 @Database(entities = [ScriptReference::class], version = 1)
 abstract class ApplicationDatabase : RoomDatabase() {
     abstract fun scriptReferenceDao(): ScriptReferenceDao
@@ -75,32 +121,43 @@ object ScriptDataManager {
             createDate = LocalDateTime.now(),
             lastModifyDate = LocalDateTime.now(),
             isPaused = false,
+            storageAccess = mutableListOf(),
             isValid = false
         )
         ref.id = db.scriptReferenceDao().insertAll(ref).first()
         return ref
     }
 
-    fun updateAllScript(engine: AndroidLuaEngine?, vararg ref: ScriptReference) {
-        engine?.let { engine ->
+    /**
+     * @param invalidateExisting true if immutable field changed and requires to restart task. setting this to false does not restart task
+     */
+    fun updateAllScript(vararg ref: ScriptReference, invalidateExisting: Boolean = true) {
+        LuaService.INSTANCE?.let { service ->
+            val engine = service.engine
             CoroutineScope(LuaService.INSTANCE!!.luaDispatcher).launch {
-                engine.tasks.forEach {
+                LuaService.INSTANCE!!.engine.tasks.forEach {
                     val task = it as AndroidLuaEngine.AndroidLuaTask
                     ref.firstOrNull { it.id == task.ref.id }?.let {
-                        task.remove()
+                        if (invalidateExisting)
+                            task.remove()
+                        else {
+                            task.isPaused = it.isPaused
+                            it.lastModifyDate = LocalDateTime.now()
+                        }
                     }
                 }
-                ref.forEach {
-                    val task = engine.createTask(
-                        code = it.code,
-                        name = it.name,
-                        repeat = true,
-                        ref = it
-                    )
-                    task.isPaused = it.isPaused
-                    it.isValid = task.isValid
-                    it.lastModifyDate = LocalDateTime.now()
-                }
+                if (invalidateExisting)
+                    ref.forEach {
+                        val task = engine.createTask(
+                            code = it.code,
+                            name = it.name,
+                            repeat = true,
+                            ref = it
+                        )
+                        task.isPaused = it.isPaused
+                        it.isValid = task.isValid
+                        it.lastModifyDate = LocalDateTime.now()
+                    }
             }
         }
 

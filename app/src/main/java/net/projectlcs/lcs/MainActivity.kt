@@ -897,7 +897,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                     onClick = {
                         CoroutineScope(Dispatchers.IO).launch {
                             task!!.isPaused = false
-                            ScriptDataManager.updateAllScript(LuaService.INSTANCE?.engine, task!!)
+                            ScriptDataManager.updateAllScript(task!!)
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -910,7 +910,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                     onClick = {
                         CoroutineScope(Dispatchers.IO).launch {
                             task!!.isPaused = true
-                            ScriptDataManager.updateAllScript(LuaService.INSTANCE?.engine, task!!)
+                            ScriptDataManager.updateAllScript(task!!)
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -961,7 +961,7 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
                     task.isPaused = !task.isPaused
-                    ScriptDataManager.updateAllScript(LuaService.INSTANCE?.engine, task)
+                    ScriptDataManager.updateAllScript(task, invalidateExisting = false)
                 }
 
                 isToggle = !isToggle

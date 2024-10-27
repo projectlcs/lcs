@@ -75,7 +75,7 @@ class LuaService : Service() {
                 val sc = ScriptDataManager.createNewScript("Test1")
                 sc.code =
                     testScript ?: resources.assets.open("test.lua").readBytes().decodeToString()
-                ScriptDataManager.updateAllScript(engine, sc)
+                ScriptDataManager.updateAllScript(sc)
                 Log.e("Update", "updated")
             }
 
