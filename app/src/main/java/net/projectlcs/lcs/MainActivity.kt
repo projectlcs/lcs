@@ -891,7 +891,16 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item { SimpleFilledTextFieldSample(task!!) }
-
+            item {
+                Button(
+                    onClick = {
+                        //need save action
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "Save")
+                }
+            }
             item {
                 Button(
                     onClick = {
