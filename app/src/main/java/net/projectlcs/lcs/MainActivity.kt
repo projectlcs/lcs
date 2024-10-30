@@ -818,18 +818,6 @@ fun OpenAIApiTest(navController: NavController) {
 }
 
 @Composable
-fun SimpleFilledTextFieldSample(task: ScriptReference) {
-    var text by remember { mutableStateOf(task.code) }
-
-    TextField(
-        value = text,
-        onValueChange = { text = it },
-        label = { Text("Code Editor") },
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
 fun DetailsScreen(navController: NavController, itemId: String?) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val taskId = itemId?.toLongOrNull()
@@ -844,10 +832,12 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
 
     // Observe task data from ViewModel
     val task by viewModel.task.collectAsState()
+
     if (task == null) {
         // Loading or invalid task case
         Text("Loading...")
     } else {
+        var text by remember { mutableStateOf(task!!.code) }
         Column {
             IconButton(onClick = {
                 navController.navigateUp()
@@ -867,11 +857,20 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item { SimpleFilledTextFieldSample(task!!) }
+            item {
+                TextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text("Code Editor") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             item {
                 Button(
                     onClick = {
-                        //need save action
+                        CoroutineScope(Dispatchers.IO).launch {
+                            ScriptDataManager.updateAllScript(task!!.copy(code = text))
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -883,7 +882,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                     onClick = {
                         CoroutineScope(Dispatchers.IO).launch {
                             task!!.isPaused = false
-                            ScriptDataManager.updateAllScript(task!!)
+                            ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
