@@ -49,7 +49,7 @@ class LuaService : Service() {
                 .setContentTitle("LCS is running")
                 .setContentText("스크립트를 실행중입니다.")
                 .build(),
-            0 or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+
         )
 
         INSTANCE = this
@@ -66,25 +66,30 @@ class LuaService : Service() {
                                 repeat = true
                             ).isPaused = it.isPaused
                         }
+                        else Log.e("LUA_LOAD", "tried to load invalid script")
                     }
             } catch (e: LuaException) {
                 Log.e("LUA_LOAD", "Lua exception on script loading: ${e.type}, ${e.message}")
             }
-            ScriptDataManager.deleteAllScript(*ScriptDataManager.getAllScripts().first().toTypedArray())
+            ScriptDataManager.deleteAllScript(
+                *ScriptDataManager.getAllScripts().first().toTypedArray()
+            )
             if (ScriptDataManager.getAllScripts().first().isEmpty()) {
                 val sc = ScriptDataManager.createNewScript("Test1")
                 sc.code =
                     testScript ?: resources.assets.open("test.lua").readBytes().decodeToString()
                 ScriptDataManager.updateAllScript(sc)
-                Log.e("Update", "updated")
             }
 
             while (true) {
-                try {
-                    engine.loop()
-                } catch (e: LuaException) {
-                    Log.e("Lua Runtime", ("Error: " + e.message))
-                    // throw e
+                engine.loop()
+                engine.tasks.forEach {
+                    if (it.errorMessage.isNotEmpty()) {
+                        Log.e("Lua Runtime", ("Error: " + it.pullError()))
+                        val ref = (it as AndroidLuaEngine.AndroidLuaTask).ref
+                        ref.isPaused = true
+                        ScriptDataManager.updateAllScript(ref, invalidateExisting = false)
+                    }
                 }
                 delay(100)
             }

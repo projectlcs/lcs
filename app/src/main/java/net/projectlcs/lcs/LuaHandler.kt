@@ -2,6 +2,7 @@ package net.projectlcs.lcs
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import me.ddayo.aris.ILuaStaticDecl
 import me.ddayo.aris.LuaEngine
@@ -38,5 +39,11 @@ open class AndroidLuaEngine(lua: Lua) : LuaEngine(lua) {
                 }
                 super.isPaused = value
             }
+
+        init {
+            if(!isValid) {
+                Log.e("LuaRuntime", "Complication error thrown: $errorMessage")
+            }
+        }
     }
 }
