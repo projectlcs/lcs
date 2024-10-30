@@ -62,7 +62,7 @@
 
         <service
             android:name=".LuaService"
-            android:foregroundServiceType="specialUse|location" />
+            android:foregroundServiceType="specialUse" />
     </application>
 
 </manifest>
