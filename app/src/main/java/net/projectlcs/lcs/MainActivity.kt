@@ -727,6 +727,20 @@ fun OpenAIApiTest(navController: NavController) {
                     ) {
                         Text(text = "권한 관리")
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                ScriptDataManager.createNewScript("Script")
+                            }
+                        }, colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2C3E50), // 딥 블루
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.width(200.dp)
+                    ) {
+                        Text(text = "새 스크립트 생성")
+                    }
                 }
             }
 
@@ -923,7 +937,9 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
 @Composable
 fun ViewItem(task: ScriptReference, navController: NavController) {
     val str = task.name
-    var isToggle by remember { mutableStateOf(!task.isPaused) }
+    val isValid by remember { mutableStateOf(task.isValid) }
+    var isToggle by remember { mutableStateOf(!task.isPaused && isValid) }
+    if(!task.isValid) isToggle = false
     val icon =
         if (isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
     Row(

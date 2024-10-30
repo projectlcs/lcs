@@ -71,6 +71,7 @@ class LuaService : Service() {
             } catch (e: LuaException) {
                 Log.e("LUA_LOAD", "Lua exception on script loading: ${e.type}, ${e.message}")
             }
+            /*
             ScriptDataManager.deleteAllScript(
                 *ScriptDataManager.getAllScripts().first().toTypedArray()
             )
@@ -80,6 +81,7 @@ class LuaService : Service() {
                     testScript ?: resources.assets.open("test.lua").readBytes().decodeToString()
                 ScriptDataManager.updateAllScript(sc)
             }
+             */
 
             while (true) {
                 engine.loop()
