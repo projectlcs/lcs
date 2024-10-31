@@ -10,14 +10,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
 import net.projectlcs.lcs.Util.requireSdk
 import net.projectlcs.lcs.Util.requireSdkOrNull
@@ -29,7 +35,12 @@ import net.projectlcs.lcs.permission.impl.LocationPermission
 import net.projectlcs.lcs.permission.impl.NotificationPolicyPermission
 import net.projectlcs.lcs.permission.ui.theme.LCSTheme
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 class PermissionRequestActivity : ComponentActivity() {
     companion object {
@@ -107,9 +118,12 @@ class PermissionRequestActivity : ComponentActivity() {
     }
 
     @Composable
-    @Preview
     fun ui() = LCSTheme {
-        Column {
+        Column (
+            modifier = Modifier.fillMaxSize()
+                .padding(vertical = 24.dp)
+                //.scrollable(orientation = Orientation.Vertical)
+        ){
             if(permissionToRequestId == REQUEST_LOCATION_PERMISSION){
                 PermissionButton(
                     title = "Notification Policy Access",
@@ -163,15 +177,23 @@ fun PermissionButton(title: String, description: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally, // 텍스트 가운데 정렬
+        verticalArrangement = Arrangement.spacedBy(16.dp) // 텍스트 사이 간격
     ) {
-        Text(text = title, style = MaterialTheme.typography.headlineSmall)
-        Text(text = description, style = MaterialTheme.typography.bodySmall)
-        /*Button(onClick = onClick, modifier = Modifier.padding(top = 8.dp)) {
-            Text("Request $title")
-        }*/
-        Box(modifier = Modifier.padding(top = 8.dp)) {
-            Text("Request $title")
-        }
+        Text(text = title, fontSize = 30.sp, style = MaterialTheme.typography.headlineSmall)
+        Text(
+            text = title,
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Red,
+        )
+        Text(
+            text = description,
+            fontSize = 24.sp,
+            color = Color.DarkGray,
+            modifier = Modifier
+                .padding(8.dp) // 배경색 및 여백 추가
+        )
     }
 }
