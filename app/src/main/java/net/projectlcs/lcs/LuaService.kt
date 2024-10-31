@@ -63,7 +63,7 @@ class LuaService : Service() {
                                 code = it.code,
                                 name = it.name,
                                 ref = it,
-                                repeat = true
+                                repeat = false
                             ).isPaused = it.isPaused
                         }
                         else Log.e("LUA_LOAD", "tried to load invalid script")

@@ -155,8 +155,8 @@ object ScriptDataManager {
                         val task = engine.createTask(
                             code = it.code,
                             name = it.name,
-                            repeat = true,
-                            ref = it
+                            ref = it,
+                            repeat = false,
                         )
                         task.isPaused = it.isPaused
                         it.isValid = task.isValid
