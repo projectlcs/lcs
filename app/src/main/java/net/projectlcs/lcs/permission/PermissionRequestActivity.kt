@@ -10,8 +10,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,7 +28,8 @@ import net.projectlcs.lcs.permission.impl.IPermission
 import net.projectlcs.lcs.permission.impl.LocationPermission
 import net.projectlcs.lcs.permission.impl.NotificationPolicyPermission
 import net.projectlcs.lcs.permission.ui.theme.LCSTheme
-
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 class PermissionRequestActivity : ComponentActivity() {
     companion object {
@@ -49,11 +54,15 @@ class PermissionRequestActivity : ComponentActivity() {
         )
     }
 
-    private val permissionToRequest: IPermission? by lazy {
-        permissionMap[intent.getIntExtra(
+    private val permissionToRequestId by lazy {
+        intent.getIntExtra(
             REQUEST_PERMISSION,
             -1
-        )]
+        )
+    }
+
+    private val permissionToRequest: IPermission? by lazy {
+        permissionMap[permissionToRequestId]
     }
 
     var permissionHandler: ActivityResultLauncher<*>? = null
@@ -101,6 +110,37 @@ class PermissionRequestActivity : ComponentActivity() {
     @Preview
     fun ui() = LCSTheme {
         Column {
+            if(permissionToRequestId == REQUEST_LOCATION_PERMISSION){
+                PermissionButton(
+                    title = "Notification Policy Access",
+                    description = "Needed to manage Do Not Disturb settings"
+                )
+            }
+            if(permissionToRequestId==REQUEST_NOTIFICATION_POLICY_PERMISSION){
+                PermissionButton(
+                    title = "Notification Policy Access",
+                    description = "Needed to manage Do Not Disturb settings."
+                )
+            }
+            if(permissionToRequestId == REQUEST_DRAW_OVERLAY_PERMISSION){
+                PermissionButton(
+                    title = "Draw Over Other Apps",
+                    description = "Allows the app to display overlays on screen",
+                )
+            }
+            if(permissionToRequestId == REQUEST_FILE_MANAGE_PERMISSION){
+                PermissionButton(
+                    title = "File Management Access",
+                    description = "Needed to manage files on your device",
+                )
+            }
+            if(permissionToRequestId == REQUEST_LOCATION_PERMISSION){
+                PermissionButton(
+                    title = "Location Access",
+                    description = "Allows the app to access your location",
+                )
+            }
+
             Button(onClick = {
                 permissionToRequest?.requestPermission(this@PermissionRequestActivity)
             }) {
@@ -112,8 +152,26 @@ class PermissionRequestActivity : ComponentActivity() {
                         startInstalledAppDetailsActivity()
                     },
                 ) {
-                    Text(text = "Open settings")
+                    Text(text = "Open app details")
                 }
+        }
+    }
+}
+
+@Composable
+fun PermissionButton(title: String, description: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Text(text = title, style = MaterialTheme.typography.headlineSmall)
+        Text(text = description, style = MaterialTheme.typography.bodySmall)
+        /*Button(onClick = onClick, modifier = Modifier.padding(top = 8.dp)) {
+            Text("Request $title")
+        }*/
+        Box(modifier = Modifier.padding(top = 8.dp)) {
+            Text("Request $title")
         }
     }
 }
