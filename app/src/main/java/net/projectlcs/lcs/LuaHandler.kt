@@ -2,12 +2,13 @@ package net.projectlcs.lcs
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import me.ddayo.aris.ILuaStaticDecl
 import me.ddayo.aris.LuaEngine
 import me.ddayo.aris.luagen.LuaProvider
 import net.projectlcs.lcs.data.ScriptReference
-import net.projectlcs.lcs.lua.glue.AndroidLuaTask_LuaGenerated
+import net.projectlcs.lcs.lua.glue.LuaGenerated.AndroidLuaTask_LuaGenerated
 import net.projectlcs.lcs.lua.glue.LuaGenerated
 import party.iroiro.luajava.Lua
 
@@ -19,7 +20,7 @@ open class AndroidLuaEngine(lua: Lua) : LuaEngine(lua) {
     fun createTask(code: String, name: String, ref: ScriptReference, repeat: Boolean) =
         AndroidLuaTask(code, name, ref, repeat).also { tasks.add(it) }
 
-    @LuaProvider
+    @LuaProvider(inherit = "me.ddayo.aris.gen.LuaGenerated")
     inner class AndroidLuaTask(
         val code: String,
         name: String,
@@ -38,5 +39,11 @@ open class AndroidLuaEngine(lua: Lua) : LuaEngine(lua) {
                 }
                 super.isPaused = value
             }
+
+        init {
+            if(!isValid) {
+                Log.e("LuaRuntime", "Complication error thrown: $errorMessage")
+            }
+        }
     }
 }

@@ -727,6 +727,20 @@ fun OpenAIApiTest(navController: NavController) {
                     ) {
                         Text(text = "권한 관리")
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                ScriptDataManager.createNewScript("Script")
+                            }
+                        }, colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2C3E50), // 딥 블루
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.width(200.dp)
+                    ) {
+                        Text(text = "새 스크립트 생성")
+                    }
                 }
             }
 
@@ -818,18 +832,6 @@ fun OpenAIApiTest(navController: NavController) {
 }
 
 @Composable
-fun SimpleFilledTextFieldSample(task: ScriptReference) {
-    var text by remember { mutableStateOf(task.code) }
-
-    TextField(
-        value = text,
-        onValueChange = { text = it },
-        label = { Text("Code Editor") },
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
 fun DetailsScreen(navController: NavController, itemId: String?) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val taskId = itemId?.toLongOrNull()
@@ -844,10 +846,12 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
 
     // Observe task data from ViewModel
     val task by viewModel.task.collectAsState()
+
     if (task == null) {
         // Loading or invalid task case
         Text("Loading...")
     } else {
+        var text by remember { mutableStateOf(task!!.code) }
         Column {
             IconButton(onClick = {
                 navController.navigateUp()
@@ -867,11 +871,20 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item { SimpleFilledTextFieldSample(task!!) }
+            item {
+                TextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text("Code Editor") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             item {
                 Button(
                     onClick = {
-                        //need save action
+                        CoroutineScope(Dispatchers.IO).launch {
+                            ScriptDataManager.updateAllScript(task!!.copy(code = text))
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -883,7 +896,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                     onClick = {
                         CoroutineScope(Dispatchers.IO).launch {
                             task!!.isPaused = false
-                            ScriptDataManager.updateAllScript(task!!)
+                            ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -924,7 +937,9 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
 @Composable
 fun ViewItem(task: ScriptReference, navController: NavController) {
     val str = task.name
-    var isToggle by remember { mutableStateOf(!task.isPaused) }
+    val isValid by remember { mutableStateOf(task.isValid) }
+    var isToggle by remember { mutableStateOf(!task.isPaused && isValid) }
+    if(!task.isValid) isToggle = false
     val icon =
         if (isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
     Row(

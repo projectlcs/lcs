@@ -39,6 +39,7 @@ data class ScriptReference(
     @ColumnInfo("is_paused") var isPaused: Boolean,
     @ColumnInfo("is_valid") var isValid: Boolean,
     @ColumnInfo("storage_access") var storageAccess: MutableList<String>,
+    @ColumnInfo("error_strings") var errorString: String,
     @PrimaryKey(autoGenerate = true) var id: Long = 0,
 ) : Parcelable {
     companion object {
@@ -59,7 +60,8 @@ data class ScriptReference(
                     it.readBoolean(),
                     it.readBoolean(),
                     (0 until it.readInt()).map { _ -> it.readString()!! }.toMutableList(),
-                    it.readLong()
+                    it.readString()!!,
+                    it.readLong(),
                 )
             }
 
@@ -79,6 +81,7 @@ data class ScriptReference(
         dest.writeBoolean(isValid)
         dest.writeInt(storageAccess.size)
         storageAccess.forEach { dest.writeString(it) }
+        dest.writeString(errorString)
         dest.writeLong(id)
     }
 }
@@ -122,7 +125,8 @@ object ScriptDataManager {
             lastModifyDate = LocalDateTime.now(),
             isPaused = false,
             storageAccess = mutableListOf(),
-            isValid = false
+            isValid = false,
+            errorString = ""
         )
         ref.id = db.scriptReferenceDao().insertAll(ref).first()
         return ref
