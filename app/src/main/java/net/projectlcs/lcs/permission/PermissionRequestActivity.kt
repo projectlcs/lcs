@@ -181,7 +181,7 @@ fun PermissionButton(title: String, description: String) {
         horizontalAlignment = Alignment.CenterHorizontally, // 텍스트 가운데 정렬
         verticalArrangement = Arrangement.spacedBy(16.dp) // 텍스트 사이 간격
     ) {
-        Text(text = title, fontSize = 30.sp, style = MaterialTheme.typography.headlineSmall)
+        //Text(text = title, fontSize = 30.sp, style = MaterialTheme.typography.headlineSmall)
         Text(
             text = title,
             fontSize = 30.sp,

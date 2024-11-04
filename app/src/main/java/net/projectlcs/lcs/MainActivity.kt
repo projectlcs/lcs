@@ -32,8 +32,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -43,6 +46,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -55,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.VerticalAlignmentLine
@@ -834,6 +839,7 @@ fun OpenAIApiTest(navController: NavController) {
 @Composable
 fun DetailsScreen(navController: NavController, itemId: String?) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    var isDialogOpen by remember { mutableStateOf(false) }
     val taskId = itemId?.toLongOrNull()
 
     if (taskId == null) {
@@ -863,72 +869,108 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                 )
             }
         }
-        LazyColumn(
+        Column(
             modifier = Modifier
+                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
                 .padding(80.dp)
                 .fillMaxHeight()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item {
-                TextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text("Code Editor") },
-                    modifier = Modifier.fillMaxWidth()
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text("Code Editor") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Button(
+                onClick = {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        ScriptDataManager.updateAllScript(task!!.copy(code = text))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Save")
+            }
+            Button(
+                onClick = {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        task!!.isPaused = false
+                        ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Start")
+            }
+            Button(
+                onClick = {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        task!!.isPaused = true
+                        ScriptDataManager.updateAllScript(task!!)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Pause")
+            }
+            Button(
+                /*onClick = {
+                    navController.navigateUp()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        ScriptDataManager.deleteAllScript(task!!)
+                    }
+                },*/
+                onClick = {
+                    isDialogOpen = true
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Delete")
+            }
+            if(isDialogOpen){
+                AlertDialog(
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_restore_from_trash_24),
+                            contentDescription = null,
+                            modifier = Modifier
+                        )
+                    },
+                    title = {
+                        Text(text = "Are you sure you want to delete this script?")
+                    },
+                    text = {
+                        Text(text = "The script will be permanently deleted from the DB. If you want to stop, press the pause button.")
+                    },
+                    onDismissRequest = {
+                        isDialogOpen = false
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                navController.navigateUp()
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    ScriptDataManager.deleteAllScript(task!!)
+                                }
+                                isDialogOpen = false
+                            }
+                        ) {
+                            Text("Confirm")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                isDialogOpen = false
+                            }
+                        ) {
+                            Text("Dismiss")
+                        }
+                    }
                 )
-            }
-            item {
-                Button(
-                    onClick = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            ScriptDataManager.updateAllScript(task!!.copy(code = text))
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Save")
-                }
-            }
-            item {
-                Button(
-                    onClick = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            task!!.isPaused = false
-                            ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Start")
-                }
-            }
-            item {
-                Button(
-                    onClick = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            task!!.isPaused = true
-                            ScriptDataManager.updateAllScript(task!!)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Pause")
-                }
-            }
-            item {
-                Button(
-                    onClick = {
-                        navController.navigateUp()
-                        CoroutineScope(Dispatchers.IO).launch {
-                            ScriptDataManager.deleteAllScript(task!!)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Delete")
-                }
             }
         }
     }
