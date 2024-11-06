@@ -322,18 +322,31 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
         Text("Loading...")
     } else {
         var text by remember { mutableStateOf(task!!.code) }
-        Column {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        ) {
             Spacer(modifier = Modifier.padding(top = 16.dp))
-            IconButton(onClick = {
-                navController.navigateUp()
-            }, modifier = Modifier
-                .padding(top = 16.dp)
-                .zIndex(1f)) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
-                    contentDescription = null,
-                    modifier = Modifier
-                )
+            Row(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                IconButton(
+                    onClick = {
+                        navController.navigateUp()
+                    }, modifier = Modifier
+                        .padding(top = 16.dp)
+                        .zIndex(1f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                    )
+                }
             }
         }
         Column(
@@ -522,6 +535,7 @@ fun Screen1(navController: NavController) {
             .padding(16.dp),
         //verticalArrangement = Arrangement.Center
     ) {
+        Spacer(modifier = Modifier.padding(top = 16.dp))
         Row(
             modifier = Modifier
                 .wrapContentHeight()
@@ -537,7 +551,7 @@ fun Screen1(navController: NavController) {
                 navController.navigate("main") {
                     popUpTo("screen1") { inclusive = true }
                 }
-            }) {
+            }, modifier = Modifier.padding(top = 16.dp).zIndex(1f)) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_arrow_back_24),
                     contentDescription = null,
