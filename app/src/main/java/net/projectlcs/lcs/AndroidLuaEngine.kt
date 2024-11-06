@@ -41,9 +41,19 @@ open class AndroidLuaEngine(lua: Lua) : LuaEngine(lua) {
             }
 
         init {
-            if(!isValid) {
+            if(taskStatus == TaskStatus.LOAD_ERROR) {
                 Log.e("LuaRuntime", "Complication error thrown: $errorMessage")
             }
         }
+
+        var isRunning get() = !isPaused && (taskStatus == TaskStatus.YIELDED || taskStatus == TaskStatus.RUNNING)
+            set(value) {
+                if(value) {
+                    isPaused = false
+                    if(taskStatus == TaskStatus.FINISHED)
+                        restart()
+                }
+                else isPaused = true
+            }
     }
 }

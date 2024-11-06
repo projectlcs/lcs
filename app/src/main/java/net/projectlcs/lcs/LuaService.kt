@@ -22,8 +22,6 @@ class LuaService : Service() {
     companion object {
         // Use context instead of its exact service for debugging purpose
         var INSTANCE: LuaService? = null
-
-        var testScript: String? = null
     }
 
     val engine = AndroidLuaEngine(LuaJit())
@@ -71,17 +69,6 @@ class LuaService : Service() {
             } catch (e: LuaException) {
                 Log.e("LUA_LOAD", "Lua exception on script loading: ${e.type}, ${e.message}")
             }
-            /*
-            ScriptDataManager.deleteAllScript(
-                *ScriptDataManager.getAllScripts().first().toTypedArray()
-            )
-            if (ScriptDataManager.getAllScripts().first().isEmpty()) {
-                val sc = ScriptDataManager.createNewScript("Test1")
-                sc.code =
-                    testScript ?: resources.assets.open("test.lua").readBytes().decodeToString()
-                ScriptDataManager.updateAllScript(sc)
-            }
-             */
 
             while (true) {
                 engine.loop()
