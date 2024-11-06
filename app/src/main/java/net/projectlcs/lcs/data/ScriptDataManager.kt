@@ -18,6 +18,7 @@ import androidx.room.Update
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import me.ddayo.aris.LuaEngine
 import net.projectlcs.lcs.AndroidLuaEngine
 import net.projectlcs.lcs.LCS
 import net.projectlcs.lcs.LuaService
@@ -159,7 +160,7 @@ object ScriptDataManager {
                             repeat = false,
                         )
                         task.isPaused = it.isPaused
-                        it.isValid = task.isValid
+                        it.isValid = task.taskStatus != LuaEngine.TaskStatus.LOAD_ERROR
                         it.lastModifyDate = LocalDateTime.now()
                     }
             }
