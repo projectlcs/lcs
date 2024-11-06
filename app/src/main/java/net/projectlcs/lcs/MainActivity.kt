@@ -442,8 +442,9 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
 @Composable
 fun ViewItem(task: ScriptReference, navController: NavController) {
     val str = task.name
-    val isValid by remember { mutableStateOf(task.isValid) }
-    var isToggle by remember { mutableStateOf(!task.isPaused && isValid) }
+    val isValid = task.isValid
+    var isToggle = !task.isPaused && isValid
+
     if(!task.isValid) isToggle = false
     val icon =
         if (isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
@@ -466,7 +467,17 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
         IconButton(
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
+                    LuaService.INSTANCE?.engine?.let { engine ->
+                    for(x in engine.tasks) {
+                        val t = x as AndroidLuaEngine.AndroidLuaTask
+                        if(t.ref != task) continue
+                        t.isRunning = !t.isRunning
+                        task.isPaused = t.isPaused
+                        break
+                    }
+                } ?: run {
                     task.isPaused = !task.isPaused
+                }
                     ScriptDataManager.updateAllScript(task, invalidateExisting = false)
                 }
 
