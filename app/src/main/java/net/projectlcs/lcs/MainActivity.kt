@@ -199,7 +199,7 @@ fun OpenAIApiTest(navController: NavController) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = {
-                            CoroutineScope(Dispatchers.IO).launch {
+                            LuaService.runQuery {
                                 ScriptDataManager.createNewScript("Script")
                             }
                         }, colors = ButtonDefaults.buttonColors(
@@ -366,7 +366,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
             )
             Button(
                 onClick = {
-                    CoroutineScope(Dispatchers.IO).launch {
+                    LuaService.runQuery {
                         ScriptDataManager.updateAllScript(task!!.copy(code = text))
                     }
                 },
@@ -376,7 +376,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
             }
             Button(
                 onClick = {
-                    CoroutineScope(Dispatchers.IO).launch {
+                    LuaService.runQuery {
                         task!!.isPaused = false
                         ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
                     }
@@ -387,7 +387,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
             }
             Button(
                 onClick = {
-                    CoroutineScope(Dispatchers.IO).launch {
+                    LuaService.runQuery {
                         task!!.isPaused = true
                         ScriptDataManager.updateAllScript(task!!)
                     }
@@ -397,12 +397,6 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                 Text(text = "Pause")
             }
             Button(
-                /*onClick = {
-                    navController.navigateUp()
-                    CoroutineScope(Dispatchers.IO).launch {
-                        ScriptDataManager.deleteAllScript(task!!)
-                    }
-                },*/
                 onClick = {
                     isDialogOpen = true
                 },
@@ -410,7 +404,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
             ) {
                 Text(text = "Delete")
             }
-            if(isDialogOpen){
+            if (isDialogOpen) {
                 AlertDialog(
                     icon = {
                         Icon(
@@ -432,7 +426,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                         TextButton(
                             onClick = {
                                 navController.navigateUp()
-                                CoroutineScope(Dispatchers.IO).launch {
+                                LuaService.runQuery {
                                     ScriptDataManager.deleteAllScript(task!!)
                                 }
                                 isDialogOpen = false
@@ -462,7 +456,7 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
     val isValid = task.isValid
     var isToggle = !task.isPaused && isValid
 
-    if(!task.isValid) isToggle = false
+    if (!task.isValid) isToggle = false
     val icon =
         if (isToggle) R.drawable.baseline_pause_circle_24 else R.drawable.baseline_play_arrow_24
     Row(
@@ -483,11 +477,10 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
         }
         IconButton(
             onClick = {
-                CoroutineScope(Dispatchers.IO).launch {
-                    LuaService.INSTANCE?.engine?.let { engine ->
-                    for(x in engine.tasks) {
+                LuaService.INSTANCE?.engine?.let { engine ->
+                    for (x in engine.tasks) {
                         val t = x as AndroidLuaEngine.AndroidLuaTask
-                        if(t.ref != task) continue
+                        if (t.ref.id != task.id) continue
                         t.isRunning = !t.isRunning
                         task.isPaused = t.isPaused
                         break
@@ -495,10 +488,9 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
                 } ?: run {
                     task.isPaused = !task.isPaused
                 }
+                LuaService.runQuery {
                     ScriptDataManager.updateAllScript(task, invalidateExisting = false)
                 }
-
-                isToggle = !isToggle
             },
         ) {
             Icon(

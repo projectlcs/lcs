@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import me.ddayo.aris.LuaEngine
 import net.projectlcs.lcs.data.ScriptDataManager
 import party.iroiro.luajava.LuaException
 import party.iroiro.luajava.luajit.LuaJit
@@ -22,6 +23,10 @@ class LuaService : Service() {
     companion object {
         // Use context instead of its exact service for debugging purpose
         var INSTANCE: LuaService? = null
+
+        fun runQuery(f: suspend CoroutineScope.() -> Unit) {
+            CoroutineScope(INSTANCE?.luaDispatcher ?: Dispatchers.IO).launch(block = f)
+        }
     }
 
     val engine = AndroidLuaEngine(LuaJit())
@@ -43,12 +48,13 @@ class LuaService : Service() {
             )
 
         startForeground(
-            1, Notification.Builder(this, "LCS_MAIN")
+            1,
+            Notification.Builder(this, "LCS_MAIN")
                 .setContentTitle("LCS is running")
                 .setContentText("스크립트를 실행중입니다.")
                 .build(),
 
-        )
+            )
 
         INSTANCE = this
 
@@ -63,8 +69,7 @@ class LuaService : Service() {
                                 ref = it,
                                 repeat = false
                             ).isPaused = it.isPaused
-                        }
-                        else Log.e("LUA_LOAD", "tried to load invalid script")
+                        } else Log.e("LUA_LOAD", "tried to load invalid script")
                     }
             } catch (e: LuaException) {
                 Log.e("LUA_LOAD", "Lua exception on script loading: ${e.type}, ${e.message}")
@@ -78,6 +83,11 @@ class LuaService : Service() {
                         val ref = (it as AndroidLuaEngine.AndroidLuaTask).ref
                         ref.isPaused = true
                         ScriptDataManager.updateAllScript(ref, invalidateExisting = false)
+                    }
+                    if (it.taskStatus == LuaEngine.TaskStatus.FINISHED) {
+                        val task = (it as AndroidLuaEngine.AndroidLuaTask).ref
+                        task.isPaused = true
+                        ScriptDataManager.updateAllScript(task, invalidateExisting = false)
                     }
                 }
                 delay(100)
