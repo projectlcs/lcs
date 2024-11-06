@@ -24,6 +24,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -322,9 +323,12 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
     } else {
         var text by remember { mutableStateOf(task!!.code) }
         Column {
+            Spacer(modifier = Modifier.padding(top = 16.dp))
             IconButton(onClick = {
                 navController.navigateUp()
-            }) {
+            }, modifier = Modifier
+                .padding(top = 16.dp)
+                .zIndex(1f)) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_arrow_back_24),
                     contentDescription = null,
@@ -334,9 +338,9 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
         }
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
                 .padding(80.dp)
+                .verticalScroll(rememberScrollState())
                 .fillMaxHeight()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
