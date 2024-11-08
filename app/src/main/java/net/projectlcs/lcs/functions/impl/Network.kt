@@ -27,8 +27,8 @@ object Network : AndroidCoroutineInterop, CoroutineProvider {
                 .url(url)
                 .build()
             val response = client.newCall(request).execute()
-            responseCode = response.code()
-            text = response.body()?.string()
+            responseCode = response.code
+            text = response.body?.string()
         }
         yieldUntil { text != null }
         breakTask(responseCode!!, text!!)
@@ -51,9 +51,9 @@ object Network : AndroidCoroutineInterop, CoroutineProvider {
                 .url(url)
                 .build()
             val response = client.newCall(request).execute()
-            responseCode = response.code()
-            File(name).writeBytes(response.body()?.bytes() ?: ByteArray(0))
-            fileWriteResult = response.body() != null
+            responseCode = response.code
+            File(name).writeBytes(response.body?.bytes() ?: ByteArray(0))
+            fileWriteResult = response.body != null
         }
         yieldUntil { fileWriteResult != null }
         breakTask(responseCode!!)
