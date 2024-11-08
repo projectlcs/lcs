@@ -38,6 +38,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import me.ddayo.aris.LuaEngine
 import net.projectlcs.lcs.ai.PromptEngineering
 import net.projectlcs.lcs.data.ScriptDataManager
 import net.projectlcs.lcs.data.ScriptReference
@@ -380,6 +381,12 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                     LuaService.runQuery {
                         task!!.isPaused = false
                         ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
+                        LuaService.INSTANCE?.let {
+                            val task = it.engine.tasks.firstOrNull { (it as AndroidLuaEngine.AndroidLuaTask).ref.id == task?.id }
+                            Log.d("a", task?.taskStatus.toString())
+                            if(task?.taskStatus == LuaEngine.TaskStatus.FINISHED)
+                                task.restart()
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -390,7 +397,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                 onClick = {
                     LuaService.runQuery {
                         task!!.isPaused = true
-                        ScriptDataManager.updateAllScript(task!!)
+                        ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

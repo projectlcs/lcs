@@ -140,16 +140,21 @@ object ScriptDataManager {
         LuaService.INSTANCE?.let { service ->
             val engine = service.engine
             CoroutineScope(LuaService.INSTANCE!!.luaDispatcher).launch {
-                LuaService.INSTANCE!!.engine.tasks.forEach {
-                    val task = it as AndroidLuaEngine.AndroidLuaTask
-                    ref.firstOrNull { it.id == task.ref.id }?.let {
-                        if (invalidateExisting)
+                val tasks = LuaService.INSTANCE!!.engine.tasks
+                var idx = 0
+                while (idx < tasks.size) {
+                    val task = tasks[idx] as AndroidLuaEngine.AndroidLuaTask
+                    val taskRef = ref.firstOrNull { it.id == task.ref.id }
+                    if (taskRef != null) {
+                        if (invalidateExisting) {
                             task.remove()
-                        else {
-                            task.isPaused = it.isPaused
-                            it.lastModifyDate = LocalDateTime.now()
+                            continue
+                        } else {
+                            task.isPaused = taskRef.isPaused
+                            taskRef.lastModifyDate = LocalDateTime.now()
                         }
                     }
+                    idx++
                 }
                 if (invalidateExisting)
                     ref.forEach {
