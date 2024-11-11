@@ -251,17 +251,17 @@ fun OpenAIApiTest(navController: NavController) {
                                 apiResponse = try {
                                     var response = testOpenAIApi(
                                         """
-                            안드로이드 스튜디오에서 작업중입니다. 
-                            맨 아래의 요구사항에는 안드로이드에서 사용가능한 기능을 자연어로 입력될것 입니다. 
-                            요구사항에 맞는 루아 스크립트를 작성해주세요. 
-                         
-                            
-                            작성되어 있는 함수 목록 : $functionList
-                            
-                            요구사항 : $inputText
-                            
-                            코드형식으로 반환해주세요.
-                            주석이나 설명은 빼주세요.
+당신은 개발의 전문가입니다.
+입력된 자연어의 요구사항에 맞는 코드를 실행해야합니다.
+작성되어 있는 함수 목록에서 적절한 함수를 조합하여 스크립트를 생성해주세요.
+최대한 제공된 함수 목록에서 함수를 작성해주시고, 그 이외 기능은 루아 스크립트의 기본 함수들을 이용해주세요.
+
+제공되는 함수 목록 및 함수 사용 예시: ${PromptEngineering.functionList}
+
+요구사항 : $inputText
+
+코드형식으로 반환해주세요.
+주석이나 설명은 빼주세요.
                             """.trimIndent()
                                     )
 
@@ -272,7 +272,15 @@ fun OpenAIApiTest(navController: NavController) {
                                     response = response.removePrefix("\n").removeSuffix("\n")
                                     Log.d("OpenAIApiTest", "API 연동 성공: $response")
 
-                                    TODO("LuaService.testScript removed. please make full script instead.")
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        val ref = ScriptDataManager.createNewScript("Script")
+                                        ref.code = response
+                                        ScriptDataManager.updateAllScript(ref)
+                                        LuaService.INSTANCE?.apply {
+                                            (engine.tasks.firstOrNull { (it as? AndroidLuaEngine.AndroidLuaTask)?.ref?.id == ref.id } as? AndroidLuaEngine.AndroidLuaTask)?.isRunning = true
+                                        }
+                                    }
+                                    // TODO("LuaService.testScript removed. please make full script instead.")
                                     MainActivity.context?.run {
                                         stopService(Intent(this, LuaService::class.java))
                                         startForegroundService(Intent(this, LuaService::class.java))

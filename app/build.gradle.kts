@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "net.projectlcs.lcs"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "net.projectlcs.lcs"
@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.service)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)

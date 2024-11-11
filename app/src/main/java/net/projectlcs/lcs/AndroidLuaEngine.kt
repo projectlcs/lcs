@@ -1,9 +1,10 @@
 package net.projectlcs.lcs
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.ddayo.aris.ILuaStaticDecl
 import me.ddayo.aris.LuaEngine
 import me.ddayo.aris.luagen.LuaProvider
@@ -30,12 +31,14 @@ open class AndroidLuaEngine(lua: Lua) : LuaEngine(lua) {
         override var isPaused: Boolean
             get() = super.isPaused
             set(value) {
-                Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(
-                        LuaService.INSTANCE,
-                        if (value) "Task $name paused" else "Task $name resumed",
-                        Toast.LENGTH_LONG
-                    ).show()
+                CoroutineScope(Dispatchers.Main).launch {
+                    LuaService.INSTANCE?.let {
+                        Toast.makeText(
+                            it,
+                            if (value) "Task $name paused" else "Task $name resumed",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 }
                 super.isPaused = value
             }

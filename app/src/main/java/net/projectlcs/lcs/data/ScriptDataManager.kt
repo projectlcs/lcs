@@ -139,8 +139,8 @@ object ScriptDataManager {
     fun updateAllScript(vararg ref: ScriptReference, invalidateExisting: Boolean = true) {
         LuaService.INSTANCE?.let { service ->
             val engine = service.engine
-            CoroutineScope(LuaService.INSTANCE!!.luaDispatcher).launch {
-                val tasks = LuaService.INSTANCE!!.engine.tasks
+            CoroutineScope(service.luaDispatcher).launch {
+                val tasks = service.engine.tasks
                 var idx = 0
                 while (idx < tasks.size) {
                     val task = tasks[idx] as AndroidLuaEngine.AndroidLuaTask
