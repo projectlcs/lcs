@@ -78,8 +78,12 @@ class LuaService : LifecycleService(), SavedStateRegistryOwner, ViewModelStoreOw
                                 name = it.name,
                                 ref = it,
                                 repeat = false
-                            ).isPaused = it.isPaused
-                        } else Log.e("LUA_LOAD", "tried to load invalid script")
+                            ).isPaused = true
+                            it.isPaused = true
+                            CoroutineScope(Dispatchers.IO).launch {
+                                ScriptDataManager.updateAllScript(it, invalidateExisting = false)
+                            }
+                        }
                     }
             } catch (e: LuaException) {
                 Log.e("LUA_LOAD", "Lua exception on script loading: ${e.type}, ${e.message}")
