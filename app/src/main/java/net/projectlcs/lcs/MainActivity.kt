@@ -187,6 +187,7 @@ fun OpenAIApiTest(navController: NavController) {
                     ) {
                         Text(text = "템플릿 더보기")
                     }
+                    /*
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = { navController.navigate("screen3") },
@@ -212,6 +213,7 @@ fun OpenAIApiTest(navController: NavController) {
                     ) {
                         Text(text = "새 스크립트 생성")
                     }
+                     */
                 }
             }
 
@@ -281,10 +283,6 @@ fun OpenAIApiTest(navController: NavController) {
                                         }
                                     }
                                     // TODO("LuaService.testScript removed. please make full script instead.")
-                                    MainActivity.context?.run {
-                                        stopService(Intent(this, LuaService::class.java))
-                                        startForegroundService(Intent(this, LuaService::class.java))
-                                    }
                                     "API 연동 성공: $response"
                                 } catch (e: Exception) {
                                     "API 연동 실패: ${e.message}"

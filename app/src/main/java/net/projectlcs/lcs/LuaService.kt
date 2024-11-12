@@ -4,17 +4,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
-import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.ViewModelStoreOwner
-import androidx.savedstate.SavedStateRegistry
-import androidx.savedstate.SavedStateRegistryController
-import androidx.savedstate.SavedStateRegistryOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -26,7 +16,7 @@ import net.projectlcs.lcs.data.ScriptDataManager
 import party.iroiro.luajava.LuaException
 import party.iroiro.luajava.luajit.LuaJit
 
-class LuaService : LifecycleService(), SavedStateRegistryOwner, ViewModelStoreOwner {
+class LuaService : AbstractLuaService() {
     companion object {
         // Use context instead of its exact service for debugging purpose
         var INSTANCE: LuaService? = null
@@ -44,9 +34,6 @@ class LuaService : LifecycleService(), SavedStateRegistryOwner, ViewModelStoreOw
 
     override fun onCreate() {
         super.onCreate()
-
-        mSavedStateRegistryController.performRestore(null)
-        mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
 
         (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
             .createNotificationChannel(
@@ -113,52 +100,13 @@ class LuaService : LifecycleService(), SavedStateRegistryOwner, ViewModelStoreOw
         super.onDestroy()
         INSTANCE = null
 
-        mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-
         Log.d("onDestroy", "service destroyed")
 
         job.cancel()
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
-    override fun onBind(intent: Intent): IBinder? {
-        return super.onBind(intent)
-    }
-
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return super.onStartCommand(intent, flags, startId)
     }
-
-    private var mLifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
-    private var mSavedStateRegistryController: SavedStateRegistryController = SavedStateRegistryController.create(this)
-
-    val isInitialized: Boolean
-        get() = true
-
-    override val lifecycle: Lifecycle
-        get() = mLifecycleRegistry
-
-    fun setCurrentState(state: Lifecycle.State) {
-        mLifecycleRegistry.currentState = state
-    }
-
-    fun handleLifecycleEvent(event: Lifecycle.Event) {
-        mLifecycleRegistry.handleLifecycleEvent(event)
-    }
-
-    override val savedStateRegistry: SavedStateRegistry
-        get() = mSavedStateRegistryController.savedStateRegistry
-
-    fun performRestore(savedState: Bundle?) {
-        mSavedStateRegistryController.performRestore(savedState)
-    }
-
-    fun performSave(outBundle: Bundle) {
-        mSavedStateRegistryController.performSave(outBundle)
-    }
-
-    private val mViewModelStore = ViewModelStore()
-    override val viewModelStore: ViewModelStore
-        get() = mViewModelStore
 }
