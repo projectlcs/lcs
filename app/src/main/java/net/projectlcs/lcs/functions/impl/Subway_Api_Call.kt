@@ -13,7 +13,7 @@ import me.ddayo.aris.LuaMultiReturn
 import net.projectlcs.lcs.functions.AndroidCoroutineInterop
 
 @LuaProvider
-object Subway_Api_Call: CoroutineProvider, AndroidCoroutineInterop {
+object Subway_Api_Call : CoroutineProvider, AndroidCoroutineInterop {
     data class SubwayArrival(
         val trainLineNm: String,  // 열차 노선 이름
         val arvlMsg2: String,     // 도착 메시지
@@ -32,6 +32,7 @@ object Subway_Api_Call: CoroutineProvider, AndroidCoroutineInterop {
             @Path("stationName") stationName: String
         ): Call<SubwayArrivalResponse>
     }
+
     @LuaFunction(name = "SubwayApiTest")
             /**
              * some station name must drop suffix 역 in korea. i.e. 선릉역 -> 선릉
@@ -45,44 +46,37 @@ object Subway_Api_Call: CoroutineProvider, AndroidCoroutineInterop {
             .build()
         val apiKey = "6950666467736a683730556375524a"
         val service = retrofit.create(SubwayService::class.java)
-        val call = service.getRealtimeArrival(apiKey,stationName)
+        val call = service.getRealtimeArrival(apiKey, stationName)
         var flag = false
-        var ret = ""
+        var ret = StringBuilder()
         ioThread {
             try {
-                Log.d("apiCall",call.request().url.toString())
+                Log.d("apiCall", call.request().url.toString())
                 val response = call.execute()
                 if (response.isSuccessful) {
                     val arrivalList = response.body()?.realtimeArrivalList
                     arrivalList?.forEach { arrival ->
-                        //println("노선: ${arrival.trainLineNm}, 도착 메시지: ${arrival.arvlMsg2}, 추가 메시지: ${arrival.arvlMsg3}, 도착 시간 : ${arrival.barvlDt}")
-                        if(ret.isNotEmpty()) ret+="\n"
-                        Log.d("apiCall", arrival.barvlDt.toString())
-                        ret += arrival.trainLineNm
-                        if(ret.isNotEmpty()) ret+="/"
-                        if(arrival.barvlDt.toInt()==0) ret+=arrival.arvlMsg2
-                        else ret+=arrival.barvlDt
-                        Log.d("apiCall",ret)
+                        ret.append(arrival.trainLineNm)
+                            .append("/")
+                            .appendLine(
+                                if ((arrival.barvlDt.toIntOrNull() ?: 0) == 0) arrival.arvlMsg2
+                                else (arrival.barvlDt.toInt()).let {
+                                    if (it >= 60) "${it / 60}분 ${it % 60}초 뒤 도착"
+                                    else "${it}초 뒤 도착"
+                                })
                     }
                 } else {
                     Log.e("apiCall", "Not found")
                 }
             } catch (e: Exception) {
-                Log.e("apiCall","error")
+                Log.e("apiCall", "error")
                 e.printStackTrace()
+            } finally {
+                flag = true
             }
-            finally { flag = true }
         }
 
         yieldUntil { flag }
-        // 유니코드 문자열을 한글로 변환하는 함수
-        val k_ret = Regex("""\\u([0-9A-Fa-f]{4})""").replace(ret) { matchResult ->
-            val unicodeValue = matchResult.groupValues[1].toInt(16)  // 16진수로 변환
-            unicodeValue.toChar().toString()  // 문자로 변환하여 반환
-        }
-        Log.d("apiCall","newCode")
-        Log.d("apiCall", k_ret)
-        println(k_ret)
-        breakTask(ret)
+        breakTask(ret.toString())
     }
 }

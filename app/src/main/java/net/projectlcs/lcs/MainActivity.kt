@@ -48,8 +48,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.GET
-import retrofit2.Call
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -363,7 +361,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                 onClick = {
                     LuaService.runQuery {
                         task!!.isPaused = false
-                        ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
+                        ScriptDataManager.updateAllScript(task!!, rerun = false)
                         LuaService.INSTANCE?.let {
                             val task = it.engine.tasks.firstOrNull { (it as AndroidLuaEngine.AndroidLuaTask).ref.id == task?.id }
                             Log.d("a", task?.taskStatus.toString())
@@ -380,7 +378,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                 onClick = {
                     LuaService.runQuery {
                         task!!.isPaused = true
-                        ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
+                        ScriptDataManager.updateAllScript(task!!, rerun = false)
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -480,7 +478,7 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
                     task.isPaused = !task.isPaused
                 }
                 LuaService.runQuery {
-                    ScriptDataManager.updateAllScript(task, invalidateExisting = false)
+                    ScriptDataManager.updateAllScript(task, rerun = false)
                 }
             },
         ) {
@@ -646,7 +644,7 @@ class ScriptViewModel : ViewModel() {
     init {
         // Room DB에서 데이터 불러오기
         viewModelScope.launch {
-            ScriptDataManager.getAllScripts().collect { scriptList ->
+            ScriptDataManager.getRunningScripts().collect { scriptList ->
                 _scripts.value = scriptList
             }
         }

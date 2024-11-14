@@ -39,6 +39,7 @@ data class ScriptReference(
     @ColumnInfo("last_modify_date") var lastModifyDate: LocalDateTime,
     @ColumnInfo("is_paused") var isPaused: Boolean,
     @ColumnInfo("is_valid") var isValid: Boolean,
+    @ColumnInfo("is_running") var isRunning: Boolean,
     @ColumnInfo("storage_access") var storageAccess: MutableList<String>,
     @ColumnInfo("error_strings") var errorString: String,
     @PrimaryKey(autoGenerate = true) var id: Long = 0,
@@ -58,6 +59,7 @@ data class ScriptReference(
                         Build.VERSION_CODES.TIRAMISU,
                         then = { it.readSerializable(null, LocalDateTime::class.java)!! },
                         not = { it.readSerializable() as LocalDateTime }),
+                    it.readBoolean(),
                     it.readBoolean(),
                     it.readBoolean(),
                     (0 until it.readInt()).map { _ -> it.readString()!! }.toMutableList(),
@@ -91,6 +93,9 @@ data class ScriptReference(
 interface ScriptReferenceDao {
     @Query("SELECT * FROM script_reference")
     fun getAllInstances(): Flow<List<ScriptReference>>
+
+    @Query("SELECT * FROM script_reference WHERE is_running = true")
+    fun getRunningInstances(): Flow<List<ScriptReference>>
 
     @Query("SELECT * FROM script_reference WHERE id = :taskId LIMIT 1")
     fun getTaskById(taskId: Long): Flow<ScriptReference>
@@ -127,16 +132,17 @@ object ScriptDataManager {
             isPaused = false,
             storageAccess = mutableListOf(),
             isValid = false,
-            errorString = ""
+            errorString = "",
+            isRunning = false
         )
         ref.id = db.scriptReferenceDao().insertAll(ref).first()
         return ref
     }
 
     /**
-     * @param invalidateExisting true if immutable field changed and requires to restart task. setting this to false does not restart task
+     * @param rerun true if immutable field changed and requires to restart task. setting this to false does not restart task
      */
-    fun updateAllScript(vararg ref: ScriptReference, invalidateExisting: Boolean = true) {
+    fun updateAllScript(vararg references: ScriptReference, rerun: Boolean = true) {
         LuaService.INSTANCE?.let { service ->
             val engine = service.engine
             CoroutineScope(service.luaDispatcher).launch {
@@ -144,9 +150,9 @@ object ScriptDataManager {
                 var idx = 0
                 while (idx < tasks.size) {
                     val task = tasks[idx] as AndroidLuaEngine.AndroidLuaTask
-                    val taskRef = ref.firstOrNull { it.id == task.ref.id }
+                    val taskRef = references.firstOrNull { ref -> ref.id == task.ref.id }
                     if (taskRef != null) {
-                        if (invalidateExisting) {
+                        if (rerun) {
                             task.remove()
                             continue
                         } else {
@@ -156,22 +162,23 @@ object ScriptDataManager {
                     }
                     idx++
                 }
-                if (invalidateExisting)
-                    ref.forEach {
+                if (rerun)
+                    references.forEach { ref ->
                         val task = engine.createTask(
-                            code = it.code,
-                            name = it.name,
-                            ref = it,
+                            code = ref.code,
+                            name = ref.name,
+                            ref = ref,
                             repeat = false,
                         )
-                        task.isPaused = it.isPaused
-                        it.isValid = task.taskStatus != LuaEngine.TaskStatus.LOAD_ERROR
-                        it.lastModifyDate = LocalDateTime.now()
+                        task.isPaused = ref.isPaused
+                        ref.isRunning = true
+                        ref.isValid = task.taskStatus != LuaEngine.TaskStatus.LOAD_ERROR
+                        ref.lastModifyDate = LocalDateTime.now()
                     }
             }
         }
 
-        db.scriptReferenceDao().update(*ref)
+        db.scriptReferenceDao().update(*references)
     }
 
     fun deleteAllScript(vararg ref: ScriptReference) {
@@ -183,6 +190,7 @@ object ScriptDataManager {
         db.scriptReferenceDao().delete(*ref)
     }
 
+    fun getRunningScripts() = db.scriptReferenceDao().getRunningInstances()
     fun getAllScripts() = db.scriptReferenceDao().getAllInstances()
     fun getTaskById(id: Long) = db.scriptReferenceDao().getTaskById(id)
 }
