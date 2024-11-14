@@ -63,11 +63,14 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             NavHost(navController = navController, startDestination = "main") {
                 composable("main") { OpenAIApiTest(navController = navController) }
-                composable("screen1") { Screen1(navController = navController) }
+                composable("scriptManagement") { ScriptManagement(navController = navController) }
                 composable("screen2") { Screen2(navController = navController) }
-                composable("screen3") { Screen3(navController = navController) }
+                composable("manageDeletedScript") { ManageDeletedScript(navController = navController) }
                 composable("details/{itemId}") { navBackStackEntry ->
                     DetailsScreen(navController, navBackStackEntry.arguments?.getString("itemId"))
+                }
+                composable("details2/{itemId}") { navBackStackEntry ->
+                    Details2Screen(navController, navBackStackEntry.arguments?.getString("itemId"))
                 }
             }
         }
@@ -165,7 +168,7 @@ fun OpenAIApiTest(navController: NavController) {
                     horizontalAlignment = Alignment.End
                 ) {
                     Button(
-                        onClick = { navController.navigate("screen1") },
+                        onClick = { navController.navigate("scriptManagement") },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF2C3E50),
                             contentColor = Color.White
@@ -184,6 +187,17 @@ fun OpenAIApiTest(navController: NavController) {
                         modifier = Modifier.width(200.dp)
                     ) {
                         Text(text = "템플릿 더보기")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { navController.navigate("manageDeletedScript") },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2C3E50),
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.width(200.dp)
+                    ) {
+                        Text(text = "삭제된 스크립트 관리")
                     }
                 }
             }
@@ -440,6 +454,89 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
 }
 
 @Composable
+fun Details2Screen(navController: NavController, itemId: String?) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val taskId = itemId?.toLongOrNull()
+
+    if (taskId == null) {
+        // If taskId is invalid, show an error message or navigate back
+        Text("Invalid item selected")
+        return
+    }
+    val viewModel: TaskDetailsViewModel =
+        viewModel(factory = TaskDetailsViewModelFactory(taskId))
+
+    // Observe task data from ViewModel
+    val task by viewModel.task.collectAsState()
+
+    if (task == null) {
+        // Loading or invalid task case
+        Text("Loading...")
+    } else {
+        var text by remember { mutableStateOf(task!!.code) }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        ) {
+            Spacer(modifier = Modifier.padding(top = 16.dp))
+            Row(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                IconButton(
+                    onClick = {
+                        navController.navigateUp()
+                    }, modifier = Modifier
+                        .padding(top = 16.dp)
+                        .zIndex(1f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                    )
+                }
+            }
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(80.dp)
+                .verticalScroll(rememberScrollState())
+                .fillMaxHeight()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text("Code Editor") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Button(
+                onClick = {
+                    TODO()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Save and Run")
+            }
+            Button(
+                onClick = {
+                    TODO("Delete")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Delete")
+            }
+        }
+    }
+}
+
+@Composable
 fun ViewItem(task: ScriptReference, navController: NavController) {
     val str = task.name
     val isValid = task.isValid
@@ -488,25 +585,61 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
                 modifier = Modifier
             )
         }
-        /*Button(
-            onClick = {task.isPaused = !task.isPaused},
+    }
+}
+@Composable
+fun DeletedViewItem(task: ScriptReference, navController: NavController) {
+    val str = task.name
+    val isValid = task.isValid
+    var isToggle = !task.isPaused && isValid
+
+    if (!task.isValid) isToggle = false
+    val icon = R.drawable.baseline_play_arrow_24
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(4.dp),
+    ) {
+        Button(
+            onClick = { navController.navigate("details2/${task.id}") },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFEF5350), // 딥 블루
+                containerColor = Color(0xFF2C3E50), // 딥 블루
                 contentColor = Color.White
             ),
-            ){
-
+            modifier = Modifier.width(300.dp),
+            shape = RoundedCornerShape(0.dp)
+        ) {
+            Text(str)
+        }
+        IconButton(
+            onClick = {
+                LuaService.INSTANCE?.engine?.let { engine ->
+                    for (x in engine.tasks) {
+                        val t = x as AndroidLuaEngine.AndroidLuaTask
+                        if (t.ref.id != task.id) continue
+                        t.isRunning = !t.isRunning
+                        task.isPaused = t.isPaused
+                        break
+                    }
+                } ?: run {
+                    task.isPaused = !task.isPaused
+                }
+                LuaService.runQuery {
+                    ScriptDataManager.updateAllScript(task, invalidateExisting = false)
+                }
+            },
+        ) {
             Icon(
-                painter = painterResource(id = R.drawable.baseline_pause_circle_outline_24),
+                painter = painterResource(id = icon),
                 contentDescription = null,
                 modifier = Modifier
             )
-        }*/
+        }
     }
 }
 
 @Composable
-fun Screen1(navController: NavController) {
+fun ScriptManagement(navController: NavController) {
     val vm: ScriptViewModel = viewModel()
     val tasks by vm.scripts.collectAsState()
 
@@ -524,13 +657,13 @@ fun Screen1(navController: NavController) {
             horizontalArrangement = Arrangement.Start
         ) {
             /*Button(onClick = { navController.navigate("main"){
-                popUpTo("screen1") {inclusive=true}
+                popUpTo("scriptManagement") {inclusive=true}
             } }) {
                 Text("메인 화면으로 돌아가기")
             }*/
             IconButton(onClick = {
                 navController.navigate("main") {
-                    popUpTo("screen1") { inclusive = true }
+                    popUpTo("scriptManagement") { inclusive = true }
                 }
             }, modifier = Modifier.padding(top = 16.dp).zIndex(1f)) {
                 Icon(
@@ -575,21 +708,44 @@ fun Screen2(navController: NavController) {
 }
 
 @Composable
-fun Screen3(navController: NavController) {
+fun ManageDeletedScript(navController: NavController) {
+    val vm: ScriptViewModel = viewModel()
+    val tasks by vm.scripts.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "이것은 화면 3입니다.")
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            navController.navigate("main") {
-                popUpTo("screen3") { inclusive = true }
+        Spacer(modifier = Modifier.padding(top = 16.dp))
+        Row(
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            IconButton(onClick = {
+                navController.navigate("main") {
+                    popUpTo("manageDeletedScript") { inclusive = true }
+                }
+            }, modifier = Modifier.padding(top = 16.dp).zIndex(1f)) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                )
             }
-        }) {
-            Text("메인 화면으로 돌아가기")
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Add 5 items
+            items(tasks.size) { index ->
+                DeletedViewItem(task = tasks[index], navController)
+            }
         }
     }
 }
