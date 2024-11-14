@@ -725,5 +725,9 @@ Send toast message
  System.currentTimeMillis()
 
  @return current datetime from 1/1/1970
+ 
+## SubwayApiTest(stationName)
+some station name must drop suffix 역 in korea. i.e. 선릉역 -> 선릉
+@return next train info of provided station.
     """.trimIndent()
 }
