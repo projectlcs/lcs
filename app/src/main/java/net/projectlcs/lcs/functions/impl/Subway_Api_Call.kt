@@ -57,7 +57,7 @@ object Subway_Api_Call: CoroutineProvider, AndroidCoroutineInterop {
                     arrivalList?.forEach { arrival ->
                         //println("노선: ${arrival.trainLineNm}, 도착 메시지: ${arrival.arvlMsg2}, 추가 메시지: ${arrival.arvlMsg3}, 도착 시간 : ${arrival.barvlDt}")
                         if(ret.isNotEmpty()) ret+="\n"
-                        Log.d("apiCall", arrival.barvlDt.toString()):
+                        Log.d("apiCall", arrival.barvlDt.toString())
                         ret += arrival.trainLineNm
                         if(ret.isNotEmpty()) ret+="/"
                         if(arrival.barvlDt.toInt()==0) ret+=arrival.arvlMsg2
