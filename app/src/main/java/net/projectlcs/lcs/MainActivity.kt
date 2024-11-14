@@ -187,33 +187,6 @@ fun OpenAIApiTest(navController: NavController) {
                     ) {
                         Text(text = "템플릿 더보기")
                     }
-                    /*
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = { navController.navigate("screen3") },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2C3E50), // 딥 블루
-                            contentColor = Color.White
-                        ),
-                        modifier = Modifier.width(200.dp)
-                    ) {
-                        Text(text = "권한 관리")
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = {
-                            LuaService.runQuery {
-                                ScriptDataManager.createNewScript("Script")
-                            }
-                        }, colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2C3E50), // 딥 블루
-                            contentColor = Color.White
-                        ),
-                        modifier = Modifier.width(200.dp)
-                    ) {
-                        Text(text = "새 스크립트 생성")
-                    }
-                     */
                 }
             }
 
@@ -287,7 +260,6 @@ fun OpenAIApiTest(navController: NavController) {
                                             (engine.tasks.firstOrNull { (it as? AndroidLuaEngine.AndroidLuaTask)?.ref?.id == ref.id } as? AndroidLuaEngine.AndroidLuaTask)?.isRunning = true
                                         }
                                     }
-                                    // TODO("LuaService.testScript removed. please make full script instead.")
                                     "API 연동 성공: $response"
                                 } catch (e: Exception) {
                                     "API 연동 실패: ${e.message}"
@@ -297,7 +269,6 @@ fun OpenAIApiTest(navController: NavController) {
                         },
                         modifier = Modifier.wrapContentHeight()
                     ) {
-                        //Text("test")
                         Image(
                             painter = painterResource(id = R.drawable.baseline_send_24),
                             contentDescription = null,
