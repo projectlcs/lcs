@@ -97,6 +97,9 @@ interface ScriptReferenceDao {
     @Query("SELECT * FROM script_reference WHERE is_running = true")
     fun getRunningInstances(): Flow<List<ScriptReference>>
 
+    @Query("SELECT * FROM script_reference WHERE is_running = false")
+    fun getFinishedInstances(): Flow<List<ScriptReference>>
+
     @Query("SELECT * FROM script_reference WHERE id = :taskId LIMIT 1")
     fun getTaskById(taskId: Long): Flow<ScriptReference>
 
@@ -192,5 +195,6 @@ object ScriptDataManager {
 
     fun getRunningScripts() = db.scriptReferenceDao().getRunningInstances()
     fun getAllScripts() = db.scriptReferenceDao().getAllInstances()
+    fun getFinishedScripts() = db.scriptReferenceDao().getFinishedInstances()
     fun getTaskById(id: Long) = db.scriptReferenceDao().getTaskById(id)
 }

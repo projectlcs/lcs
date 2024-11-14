@@ -199,6 +199,21 @@ fun OpenAIApiTest(navController: NavController) {
                     ) {
                         Text(text = "삭제된 스크립트 관리")
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                ScriptDataManager.createNewScript("New Script")
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2C3E50),
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.width(200.dp)
+                    ) {
+                        Text(text = "Create new script")
+                    }
                 }
             }
 
@@ -518,7 +533,10 @@ fun Details2Screen(navController: NavController, itemId: String?) {
             )
             Button(
                 onClick = {
-                    TODO()
+                    task!!.code = text
+                    CoroutineScope(Dispatchers.IO).launch {
+                        ScriptDataManager.updateAllScript(task!!, rerun = true)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -526,7 +544,9 @@ fun Details2Screen(navController: NavController, itemId: String?) {
             }
             Button(
                 onClick = {
-                    TODO("Delete")
+                    CoroutineScope(Dispatchers.IO).launch {
+                        ScriptDataManager.deleteAllScript(task!!)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -613,19 +633,9 @@ fun DeletedViewItem(task: ScriptReference, navController: NavController) {
         }
         IconButton(
             onClick = {
-                LuaService.INSTANCE?.engine?.let { engine ->
-                    for (x in engine.tasks) {
-                        val t = x as AndroidLuaEngine.AndroidLuaTask
-                        if (t.ref.id != task.id) continue
-                        t.isRunning = !t.isRunning
-                        task.isPaused = t.isPaused
-                        break
-                    }
-                } ?: run {
-                    task.isPaused = !task.isPaused
-                }
+                task.isPaused = false
                 LuaService.runQuery {
-                    ScriptDataManager.updateAllScript(task, invalidateExisting = false)
+                    ScriptDataManager.updateAllScript(task, rerun = true)
                 }
             },
         ) {
@@ -709,7 +719,7 @@ fun Screen2(navController: NavController) {
 
 @Composable
 fun ManageDeletedScript(navController: NavController) {
-    val vm: ScriptViewModel = viewModel()
+    val vm: ScriptHistoryViewModel = viewModel()
     val tasks by vm.scripts.collectAsState()
 
     Column(
@@ -801,6 +811,20 @@ class ScriptViewModel : ViewModel() {
         // Room DB에서 데이터 불러오기
         viewModelScope.launch {
             ScriptDataManager.getRunningScripts().collect { scriptList ->
+                _scripts.value = scriptList
+            }
+        }
+    }
+}
+
+class ScriptHistoryViewModel : ViewModel() {
+    private val _scripts = MutableStateFlow<List<ScriptReference>>(emptyList())
+    val scripts: StateFlow<List<ScriptReference>> = _scripts
+
+    init {
+        // Room DB에서 데이터 불러오기
+        viewModelScope.launch {
+            ScriptDataManager.getFinishedScripts().collect { scriptList ->
                 _scripts.value = scriptList
             }
         }
