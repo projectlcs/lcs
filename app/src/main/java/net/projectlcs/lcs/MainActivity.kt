@@ -253,18 +253,15 @@ fun OpenAIApiTest(navController: NavController) {
                                 apiResponse = try {
                                     var response = testOpenAIApi(
                                         """
-당신은 개발의 전문가입니다.
-입력된 자연어의 요구사항에 맞는 코드를 실행해야합니다.
-작성되어 있는 함수 목록에서 적절한 함수를 조합하여 스크립트를 생성해주세요.
-최대한 제공된 함수 목록에서 함수를 작성해주시고, 그 이외 기능은 루아 스크립트의 기본 함수들을 이용해주세요.
+당신은 프롬프트 엔지니어링과 Lua 스크립팅의 전문가입니다.
+사용자의 자연어 요구사항을 입력받아, 제공된 Lua 함수 목록에서 적절한 함수를 활용하여 코드를 작성합니다.
 
-제공되는 함수 목록 및 함수 사용 예시: ${PromptEngineering.functionList}
+제공된 함수 목록: ${PromptEngineering.functionList}
 
-요구사항 : $inputText
+사용자 요구사항: $inputText
 
-코드형식으로 반환해주세요.
-주석이나 설명은 빼주세요.
-                            """.trimIndent()
+출력 형식: 코드로만 반환하며, 주석이나 부연 설명은 포함하지 않습니다.
+  """.trimIndent()
                                     )
 
                                     response = response.removePrefix("```lua")
@@ -273,9 +270,17 @@ fun OpenAIApiTest(navController: NavController) {
                                     response = response.removePrefix("```").removeSuffix("```")
                                     response = response.removePrefix("\n").removeSuffix("\n")
                                     Log.d("OpenAIApiTest", "API 연동 성공: $response")
-
+                                    val summary=testOpenAIApi("""
+                                        당신은 프롬프트 엔지니어링과 Lua 스크립팅의 전문가입니다.
+                                        
+                                        주어진 Lua 코드에 대한 요약을 작성해주세요. 요약은 한글 20글자 이내로 비전문가가 이해할 수 있게 쉽게 작성되어야 합니다.
+                                        
+                                        함수 목록 및 사용법: ${PromptEngineering.functionList}
+                                        사용자 요구사항: $inputText
+                                        코드: $response
+                                    """.trimIndent())
                                     CoroutineScope(Dispatchers.IO).launch {
-                                        val ref = ScriptDataManager.createNewScript("Script")
+                                        val ref = ScriptDataManager.createNewScript(summary)
                                         ref.code = response
                                         ScriptDataManager.updateAllScript(ref)
                                         LuaService.INSTANCE?.apply {
