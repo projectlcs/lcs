@@ -48,6 +48,7 @@ object Notification: PermissionProvider {
             val notification = NotificationCompat.Builder(LuaService.INSTANCE!!, channelId)
                 .setContentTitle(title)
                 .setContentText(text)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(text))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .build()

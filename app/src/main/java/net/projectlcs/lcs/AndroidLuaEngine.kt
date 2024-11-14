@@ -30,33 +30,38 @@ open class AndroidLuaEngine(lua: Lua) : LuaEngine(lua) {
     ) : LuaTask(code, name, repeat), ILuaStaticDecl by AndroidLuaTask_LuaGenerated {
         override var isPaused: Boolean
             get() = super.isPaused
+            set(value) { super.isPaused = value }
+            /*
             set(value) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    LuaService.INSTANCE?.let {
-                        Toast.makeText(
-                            it,
-                            if (value) "Task $name paused" else "Task $name resumed",
-                            Toast.LENGTH_LONG
-                        ).show()
+                if (value != super.isPaused) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        LuaService.INSTANCE?.let {
+                            Toast.makeText(
+                                it,
+                                if (value) "Task $name paused" else "Task $name resumed",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
+                    super.isPaused = value
                 }
-                super.isPaused = value
             }
+             */
 
         init {
-            if(taskStatus == TaskStatus.LOAD_ERROR) {
+            if (taskStatus == TaskStatus.LOAD_ERROR) {
                 Log.e("LuaRuntime", "Complication error thrown: $errorMessage")
             }
         }
 
-        var isRunning get() = !isPaused && (taskStatus == TaskStatus.YIELDED || taskStatus == TaskStatus.RUNNING)
+        var isRunning
+            get() = !isPaused && (taskStatus == TaskStatus.YIELDED || taskStatus == TaskStatus.RUNNING)
             set(value) {
-                if(value) {
+                if (value) {
                     isPaused = false
-                    if(taskStatus == TaskStatus.FINISHED)
+                    if (taskStatus == TaskStatus.FINISHED)
                         restart()
-                }
-                else isPaused = true
+                } else isPaused = true
             }
     }
 }

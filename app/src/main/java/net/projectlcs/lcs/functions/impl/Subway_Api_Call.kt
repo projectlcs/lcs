@@ -33,13 +33,18 @@ object Subway_Api_Call: CoroutineProvider, AndroidCoroutineInterop {
         ): Call<SubwayArrivalResponse>
     }
     @LuaFunction(name = "SubwayApiTest")
-    fun SubwayApiTest() = coroutine {
+            /**
+             * some station name must drop suffix 역 in korea. i.e. 선릉역 -> 선릉
+             *
+             * @return next train info of provided station.
+             */
+    fun SubwayApiTest(stationName: String) = coroutine {
         val retrofit = Retrofit.Builder()
             .baseUrl("http://swopenapi.seoul.go.kr/api/subway/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         val apiKey = "6950666467736a683730556375524a"
-        val stationName = "선릉"
+        val stationName = stationName
         val service = retrofit.create(SubwayService::class.java)
         val call = service.getRealtimeArrival(apiKey,stationName)
         var flag = false
