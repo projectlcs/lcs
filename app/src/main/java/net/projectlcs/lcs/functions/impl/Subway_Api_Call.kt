@@ -52,11 +52,12 @@ object Subway_Api_Call: CoroutineProvider, AndroidCoroutineInterop {
                     val arrivalList = response.body()?.realtimeArrivalList
                     arrivalList?.forEach { arrival ->
                         //println("노선: ${arrival.trainLineNm}, 도착 메시지: ${arrival.arvlMsg2}, 추가 메시지: ${arrival.arvlMsg3}, 도착 시간 : ${arrival.barvlDt}")
+                        if(ret.isNotEmpty()) ret+="\n"
                         Log.d("apiCall", arrival.barvlDt.toString())
-                        if(ret.isNotEmpty()) ret = ret + "/"
                         ret += arrival.trainLineNm
                         if(ret.isNotEmpty()) ret+="/"
-                        ret += arrival.barvlDt
+                        if(arrival.barvlDt.toInt()==0) ret+=arrival.arvlMsg2
+                        else ret+=arrival.barvlDt
                         Log.d("apiCall",ret)
                     }
                 } else {
