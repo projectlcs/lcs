@@ -213,7 +213,8 @@ fun OpenAIApiTest(navController: NavController) {
                     value = inputText,
                     onValueChange = { inputText = it },
                     label = { Text("요구사항을 입력하세요") },
-                    modifier = Modifier
+                    modifier = Modifier.weight(1f)
+                        .padding(end=8.dp)
                 )
 
                 //Spacer(modifier = Modifier.height(16.dp))
