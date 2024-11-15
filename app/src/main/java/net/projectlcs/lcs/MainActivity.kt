@@ -48,8 +48,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.GET
-import retrofit2.Call
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -65,11 +63,14 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             NavHost(navController = navController, startDestination = "main") {
                 composable("main") { OpenAIApiTest(navController = navController) }
-                composable("screen1") { Screen1(navController = navController) }
+                composable("scriptManagement") { ScriptManagement(navController = navController) }
                 composable("screen2") { Screen2(navController = navController) }
-                composable("screen3") { Screen3(navController = navController) }
+                composable("manageDeletedScript") { ManageDeletedScript(navController = navController) }
                 composable("details/{itemId}") { navBackStackEntry ->
                     DetailsScreen(navController, navBackStackEntry.arguments?.getString("itemId"))
+                }
+                composable("details2/{itemId}") { navBackStackEntry ->
+                    Details2Screen(navController, navBackStackEntry.arguments?.getString("itemId"))
                 }
             }
         }
@@ -167,7 +168,7 @@ fun OpenAIApiTest(navController: NavController) {
                     horizontalAlignment = Alignment.End
                 ) {
                     Button(
-                        onClick = { navController.navigate("screen1") },
+                        onClick = { navController.navigate("scriptManagement") },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF2C3E50),
                             contentColor = Color.White
@@ -187,33 +188,32 @@ fun OpenAIApiTest(navController: NavController) {
                     ) {
                         Text(text = "템플릿 더보기")
                     }
-                    /*
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { navController.navigate("screen3") },
+                        onClick = { navController.navigate("manageDeletedScript") },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2C3E50), // 딥 블루
+                            containerColor = Color(0xFF2C3E50),
                             contentColor = Color.White
                         ),
                         modifier = Modifier.width(200.dp)
                     ) {
-                        Text(text = "권한 관리")
+                        Text(text = "삭제된 스크립트 관리")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = {
-                            LuaService.runQuery {
-                                ScriptDataManager.createNewScript("Script")
+                            CoroutineScope(Dispatchers.IO).launch {
+                                ScriptDataManager.createNewScript("New Script")
                             }
-                        }, colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2C3E50), // 딥 블루
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2C3E50),
                             contentColor = Color.White
                         ),
                         modifier = Modifier.width(200.dp)
                     ) {
-                        Text(text = "새 스크립트 생성")
+                        Text(text = "Create new script")
                     }
-                     */
                 }
             }
 
@@ -240,7 +240,8 @@ fun OpenAIApiTest(navController: NavController) {
                     value = inputText,
                     onValueChange = { inputText = it },
                     label = { Text("요구사항을 입력하세요") },
-                    modifier = Modifier
+                    modifier = Modifier.weight(1f)
+                        .padding(end=8.dp)
                 )
 
                 //Spacer(modifier = Modifier.height(16.dp))
@@ -290,7 +291,6 @@ Lua 함수 목록 및 사용법: ${PromptEngineering.functionList}
                                             (engine.tasks.firstOrNull { (it as? AndroidLuaEngine.AndroidLuaTask)?.ref?.id == ref.id } as? AndroidLuaEngine.AndroidLuaTask)?.isRunning = true
                                         }
                                     }
-                                    // TODO("LuaService.testScript removed. please make full script instead.")
                                     "API 연동 성공: $response"
                                 } catch (e: Exception) {
                                     "API 연동 실패: ${e.message}"
@@ -300,7 +300,6 @@ Lua 함수 목록 및 사용법: ${PromptEngineering.functionList}
                         },
                         modifier = Modifier.wrapContentHeight()
                     ) {
-                        //Text("test")
                         Image(
                             painter = painterResource(id = R.drawable.baseline_send_24),
                             contentDescription = null,
@@ -394,7 +393,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                 onClick = {
                     LuaService.runQuery {
                         task!!.isPaused = false
-                        ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
+                        ScriptDataManager.updateAllScript(task!!, rerun = false)
                         LuaService.INSTANCE?.let {
                             val task = it.engine.tasks.firstOrNull { (it as AndroidLuaEngine.AndroidLuaTask).ref.id == task?.id }
                             Log.d("a", task?.taskStatus.toString())
@@ -411,7 +410,7 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                 onClick = {
                     LuaService.runQuery {
                         task!!.isPaused = true
-                        ScriptDataManager.updateAllScript(task!!, invalidateExisting = false)
+                        ScriptDataManager.updateAllScript(task!!, rerun = false)
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -473,6 +472,94 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
 }
 
 @Composable
+fun Details2Screen(navController: NavController, itemId: String?) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val taskId = itemId?.toLongOrNull()
+
+    if (taskId == null) {
+        // If taskId is invalid, show an error message or navigate back
+        Text("Invalid item selected")
+        return
+    }
+    val viewModel: TaskDetailsViewModel =
+        viewModel(factory = TaskDetailsViewModelFactory(taskId))
+
+    // Observe task data from ViewModel
+    val task by viewModel.task.collectAsState()
+
+    if (task == null) {
+        // Loading or invalid task case
+        Text("Loading...")
+    } else {
+        var text by remember { mutableStateOf(task!!.code) }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        ) {
+            Spacer(modifier = Modifier.padding(top = 16.dp))
+            Row(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                IconButton(
+                    onClick = {
+                        navController.navigateUp()
+                    }, modifier = Modifier
+                        .padding(top = 16.dp)
+                        .zIndex(1f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                    )
+                }
+            }
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(80.dp)
+                .verticalScroll(rememberScrollState())
+                .fillMaxHeight()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text("Code Editor") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Button(
+                onClick = {
+                    task!!.code = text
+                    CoroutineScope(Dispatchers.IO).launch {
+                        ScriptDataManager.updateAllScript(task!!, rerun = true)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Save and Run")
+            }
+            Button(
+                onClick = {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        ScriptDataManager.deleteAllScript(task!!)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Delete")
+            }
+        }
+    }
+}
+
+@Composable
 fun ViewItem(task: ScriptReference, navController: NavController) {
     val str = task.name
     val isValid = task.isValid
@@ -511,7 +598,7 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
                     task.isPaused = !task.isPaused
                 }
                 LuaService.runQuery {
-                    ScriptDataManager.updateAllScript(task, invalidateExisting = false)
+                    ScriptDataManager.updateAllScript(task, rerun = false)
                 }
             },
         ) {
@@ -521,25 +608,51 @@ fun ViewItem(task: ScriptReference, navController: NavController) {
                 modifier = Modifier
             )
         }
-        /*Button(
-            onClick = {task.isPaused = !task.isPaused},
+    }
+}
+@Composable
+fun DeletedViewItem(task: ScriptReference, navController: NavController) {
+    val str = task.name
+    val isValid = task.isValid
+    var isToggle = !task.isPaused && isValid
+
+    if (!task.isValid) isToggle = false
+    val icon = R.drawable.baseline_play_arrow_24
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(4.dp),
+    ) {
+        Button(
+            onClick = { navController.navigate("details2/${task.id}") },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFEF5350), // 딥 블루
+                containerColor = Color(0xFF2C3E50), // 딥 블루
                 contentColor = Color.White
             ),
-            ){
-
+            modifier = Modifier.width(300.dp),
+            shape = RoundedCornerShape(0.dp)
+        ) {
+            Text(str)
+        }
+        IconButton(
+            onClick = {
+                task.isPaused = false
+                LuaService.runQuery {
+                    ScriptDataManager.updateAllScript(task, rerun = true)
+                }
+            },
+        ) {
             Icon(
-                painter = painterResource(id = R.drawable.baseline_pause_circle_outline_24),
+                painter = painterResource(id = icon),
                 contentDescription = null,
                 modifier = Modifier
             )
-        }*/
+        }
     }
 }
 
 @Composable
-fun Screen1(navController: NavController) {
+fun ScriptManagement(navController: NavController) {
     val vm: ScriptViewModel = viewModel()
     val tasks by vm.scripts.collectAsState()
 
@@ -557,13 +670,13 @@ fun Screen1(navController: NavController) {
             horizontalArrangement = Arrangement.Start
         ) {
             /*Button(onClick = { navController.navigate("main"){
-                popUpTo("screen1") {inclusive=true}
+                popUpTo("scriptManagement") {inclusive=true}
             } }) {
                 Text("메인 화면으로 돌아가기")
             }*/
             IconButton(onClick = {
                 navController.navigate("main") {
-                    popUpTo("screen1") { inclusive = true }
+                    popUpTo("scriptManagement") { inclusive = true }
                 }
             }, modifier = Modifier.padding(top = 16.dp).zIndex(1f)) {
                 Icon(
@@ -608,21 +721,44 @@ fun Screen2(navController: NavController) {
 }
 
 @Composable
-fun Screen3(navController: NavController) {
+fun ManageDeletedScript(navController: NavController) {
+    val vm: ScriptHistoryViewModel = viewModel()
+    val tasks by vm.scripts.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "이것은 화면 3입니다.")
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            navController.navigate("main") {
-                popUpTo("screen3") { inclusive = true }
+        Spacer(modifier = Modifier.padding(top = 16.dp))
+        Row(
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            IconButton(onClick = {
+                navController.navigate("main") {
+                    popUpTo("manageDeletedScript") { inclusive = true }
+                }
+            }, modifier = Modifier.padding(top = 16.dp).zIndex(1f)) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                )
             }
-        }) {
-            Text("메인 화면으로 돌아가기")
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Add 5 items
+            items(tasks.size) { index ->
+                DeletedViewItem(task = tasks[index], navController)
+            }
         }
     }
 }
@@ -677,7 +813,21 @@ class ScriptViewModel : ViewModel() {
     init {
         // Room DB에서 데이터 불러오기
         viewModelScope.launch {
-            ScriptDataManager.getAllScripts().collect { scriptList ->
+            ScriptDataManager.getRunningScripts().collect { scriptList ->
+                _scripts.value = scriptList
+            }
+        }
+    }
+}
+
+class ScriptHistoryViewModel : ViewModel() {
+    private val _scripts = MutableStateFlow<List<ScriptReference>>(emptyList())
+    val scripts: StateFlow<List<ScriptReference>> = _scripts
+
+    init {
+        // Room DB에서 데이터 불러오기
+        viewModelScope.launch {
+            ScriptDataManager.getFinishedScripts().collect { scriptList ->
                 _scripts.value = scriptList
             }
         }

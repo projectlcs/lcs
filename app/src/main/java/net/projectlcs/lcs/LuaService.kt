@@ -57,18 +57,17 @@ class LuaService : AbstractLuaService() {
 
         job = CoroutineScope(luaDispatcher).launch {
             try {
-                ScriptDataManager.getAllScripts().first()
-                    .forEach { it ->
-                        if (it.isValid) {
+                ScriptDataManager.getRunningScripts().first()
+                    .forEach { ref ->
+                        if (ref.isValid) {
                             engine.createTask(
-                                code = it.code,
-                                name = it.name,
-                                ref = it,
+                                code = ref.code,
+                                name = ref.name,
+                                ref = ref,
                                 repeat = false
-                            ).isPaused = true
-                            it.isPaused = true
+                            ).isPaused = ref.isPaused
                             CoroutineScope(Dispatchers.IO).launch {
-                                ScriptDataManager.updateAllScript(it, invalidateExisting = false)
+                                ScriptDataManager.updateAllScript(ref, rerun = false)
                             }
                         }
                     }
@@ -83,14 +82,15 @@ class LuaService : AbstractLuaService() {
                         Log.e("Lua Runtime", ("Error: " + it.pullError()))
                         val ref = (it as AndroidLuaEngine.AndroidLuaTask).ref
                         ref.isPaused = true
-                        ScriptDataManager.updateAllScript(ref, invalidateExisting = false)
+                        ScriptDataManager.updateAllScript(ref, rerun = false)
                     }
                     if (it.taskStatus == LuaEngine.TaskStatus.FINISHED) {
                         val task = (it as AndroidLuaEngine.AndroidLuaTask).ref
-                        task.isPaused = true
-                        ScriptDataManager.updateAllScript(task, invalidateExisting = false)
+                        task.isRunning = false
+                        ScriptDataManager.updateAllScript(task, rerun = false)
                     }
                 }
+                engine.removeAllFinished()
                 delay(100)
             }
         }
