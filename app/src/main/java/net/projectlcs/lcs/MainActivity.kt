@@ -639,7 +639,6 @@ suspend fun testOpenAIApi(prompt: String): String {
         messages = listOf(ChatMessage(role = "user", content = prompt))
     )
     // 여기에 자신의 API 키를 입력하세요
-    //sk-proj-aPmdKj1RPjf0adKxcHoAT3BlbkFJR8cSXBgsLOtz3dgQ0HGB
     val apiKey = "sk-proj-aPmdKj1RPjf0adKxcHoAT3BlbkFJR8cSXBgsLOtz3dgQ0HGB"
     val response = service.createChatCompletion("Bearer $apiKey", request)
     return response.choices.firstOrNull()?.message?.content ?: "No response"
