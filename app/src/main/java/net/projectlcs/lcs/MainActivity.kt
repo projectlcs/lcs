@@ -271,13 +271,16 @@ fun OpenAIApiTest(navController: NavController) {
                                     response = response.removePrefix("\n").removeSuffix("\n")
                                     Log.d("OpenAIApiTest", "API 연동 성공: $response")
                                     val summary=testOpenAIApi("""
-                                        당신은 프롬프트 엔지니어링과 Lua 스크립팅의 전문가입니다.
-                                        
-                                        주어진 Lua 코드에 대한 요약을 작성해주세요. 요약은 한글 20글자 이내로 비전문가가 이해할 수 있게 쉽게 작성되어야 합니다.
-                                        
-                                        함수 목록 및 사용법: ${PromptEngineering.functionList}
-                                        사용자 요구사항: $inputText
-                                        코드: $response
+당신은 Lua 언어의 전문가입니다. 
+사용자의 요구사항을 반영한 Lua 코드를 분석합니다.
+
+사용자의 요구사항 반영한 코드의 행위에 대해 Lua로 작성된 함수 목록을 참고하여 요약 설명해주세요.
+요약 설명은 한글 15글자 이내로 해야합니다.
+
+사용자 요구사항: $inputText
+Lua 함수 목록 및 사용법: ${PromptEngineering.functionList}
+
+요구사항 반영한 코드: $response
                                     """.trimIndent())
                                     CoroutineScope(Dispatchers.IO).launch {
                                         val ref = ScriptDataManager.createNewScript(summary)
@@ -636,6 +639,7 @@ suspend fun testOpenAIApi(prompt: String): String {
         messages = listOf(ChatMessage(role = "user", content = prompt))
     )
     // 여기에 자신의 API 키를 입력하세요
+    //sk-proj-aPmdKj1RPjf0adKxcHoAT3BlbkFJR8cSXBgsLOtz3dgQ0HGB
     val apiKey = "sk-proj-aPmdKj1RPjf0adKxcHoAT3BlbkFJR8cSXBgsLOtz3dgQ0HGB"
     val response = service.createChatCompletion("Bearer $apiKey", request)
     return response.choices.firstOrNull()?.message?.content ?: "No response"
