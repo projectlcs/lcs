@@ -1,16 +1,46 @@
 package net.projectlcs.lcs.functions.impl
 
-import android.content.pm.PackageManager
-import androidx.core.content.ContextCompat
+import android.os.Environment
+import me.ddayo.aris.CoroutineProvider.CoroutineReturn
+import me.ddayo.aris.LuaMultiReturn
 import me.ddayo.aris.luagen.LuaFunction
 import me.ddayo.aris.luagen.LuaProvider
 import net.projectlcs.lcs.LuaService
 import net.projectlcs.lcs.functions.PermissionProvider
+import net.projectlcs.lcs.functions.impl.Dialog.showYesNoDialog
 import net.projectlcs.lcs.permission.PermissionRequestActivity
 import java.io.File
+import kotlin.experimental.ExperimentalTypeInference
 
 @LuaProvider
-object FileManagement: PermissionProvider {
+object FileManagement : PermissionProvider {
+    @LuaFunction(name = "is_file")
+            /**
+             * @param name file to verify. this both can be global or local
+             * @return is file then true. if not(like directory) false
+             */
+    fun isFile(name: String) = File(name).isFile
+
+    @LuaFunction(name = "files_in_dir")
+            /**
+             * Get files inside directory.
+             *
+             * ```lua
+             * local files = { files_in_dir("folder") }
+             * for x=1,#files do
+             *     print(files[x])
+             * end
+             * ```
+             * This code prints file inside folder.
+             *
+             * @param name the directory to iterate
+             * @return files inside specified directory. you may use { files_in_dir("something") } to convert return value into list.
+             */
+    fun iterateDirectory(name: String) = LuaMultiReturn(
+        *File(LuaService.INSTANCE!!.filesDir, name).listFiles()!!.map { it.absolutePath }
+            .toTypedArray()
+    )
+
     @LuaFunction(name = "create_file")
             /**
              * Create file inside application-data directory
@@ -25,8 +55,15 @@ object FileManagement: PermissionProvider {
              * Delete file inside application-data directory
              * @param name filename to delete
              */
-    fun deleteFile(name: String) {
-        File(LuaService.INSTANCE!!.filesDir, name).delete()
+    fun deleteFile(name: String) = coroutine {
+        if (showYesNoDialog(
+                "Are you really want to delete file $name?",
+                "This action can not be reverted."
+            ) == 1
+        ) {
+            File(LuaService.INSTANCE!!.filesDir, name).delete()
+            breakTask(true)
+        } else breakTask(false)
     }
 
     @LuaFunction(name = "write_file")
@@ -59,6 +96,27 @@ object FileManagement: PermissionProvider {
         return File(LuaService.INSTANCE!!.filesDir, name).readText()
     }
 
+    @LuaFunction(name = "files_in_dir_global")
+            /**
+             * Get files inside global(external) directory.
+             *
+             * ```lua
+             * local files = { files_in_dir_global("folder") }
+             * for x=1,#files do
+             *     print(files[x])
+             * end
+             * ```
+             * This code prints file inside folder.
+             *
+             * @param name the directory to iterate
+             * @return files inside specified directory. you may use { files_in_dir_global("something") } to convert return value into list.
+             */
+    fun getFileInDirectoryGlobal(name: String) = coroutine {
+        requestPermission {
+            breakTask(*File(name).listFiles()!!.map { it.absolutePath }.toTypedArray())
+        }
+    }
+
     @LuaFunction(name = "create_file_global")
             /**
              * Create file inside global(external) storage. This requires MANAGE_EXTERNAL_STORAGE permission
@@ -75,10 +133,23 @@ object FileManagement: PermissionProvider {
              * Delete file inside global(external) storage. This requires MANAGE_EXTERNAL_STORAGE permission
              * @param name filename to create
              */
-    fun deleteFileGlobal(name: String) = coroutine<Unit> {
+    fun deleteFileGlobal(name: String) = coroutine {
         requestPermission {
-            File(name).delete()
+            if (showYesNoDialog(
+                    "Are you really want to delete global file $name?",
+                    "This action can not be reverted."
+                ) == 1
+            ) {
+                File(name).delete()
+                breakTask(true)
+            } else breakTask(false)
         }
+    }
+
+    @OptIn(ExperimentalTypeInference::class)
+    suspend fun <T> SequenceScope<CoroutineReturn<T>>.suspendTest(@BuilderInference then: suspend SequenceScope<CoroutineReturn<T>>.(result: Int) -> Unit) {
+        yieldUntil { true }
+        then(1)
     }
 
     @LuaFunction(name = "write_file_global")
@@ -117,8 +188,15 @@ object FileManagement: PermissionProvider {
         }
     }
 
+    @LuaFunction(name = "get_download_folder")
+            /**
+             * @return get download folder directory. The result must used on global file management function
+             */
+    fun getDownloadFolder() =
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)!!.absolutePath
+
     override fun verifyPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(LuaService.INSTANCE!!, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        return Environment.isExternalStorageManager()
     }
 
     override fun requestPermission() {

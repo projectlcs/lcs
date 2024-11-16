@@ -53,7 +53,7 @@ object Dialog : AndroidCoroutineInterop, CoroutineProvider {
                 setViewTreeSavedStateRegistryOwner(context)
             }
 
-            params.gravity = /* Gravity.Center */ Gravity.TOP
+            params.gravity = Gravity.CENTER
             windowManager.addView(overlayView, params)
         }
 

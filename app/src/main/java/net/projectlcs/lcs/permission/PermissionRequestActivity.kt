@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import net.projectlcs.lcs.permission.impl.ManageFilePermission
 
 class PermissionRequestActivity : ComponentActivity() {
     companion object {
@@ -60,7 +61,7 @@ class PermissionRequestActivity : ComponentActivity() {
             },
             REQUEST_NOTIFICATION_POLICY_PERMISSION to NotificationPolicyPermission,
             REQUEST_DRAW_OVERLAY_PERMISSION to DrawOverlayPermission,
-            REQUEST_FILE_MANAGE_PERMISSION to DangerousPermission(android.Manifest.permission.MANAGE_EXTERNAL_STORAGE),
+            REQUEST_FILE_MANAGE_PERMISSION to ManageFilePermission,
             REQUEST_LOCATION_PERMISSION to LocationPermission,
         )
     }

@@ -8,24 +8,24 @@ import net.projectlcs.lcs.LuaService
 import net.projectlcs.lcs.permission.PermissionRequestActivity
 import kotlin.experimental.ExperimentalTypeInference
 
-interface PermissionProvider: CoroutineProvider, AndroidCoroutineInterop {
+interface PermissionProvider : CoroutineProvider, AndroidCoroutineInterop {
     fun verifyPermission(): Boolean
     fun requestPermission()
 
     fun startPermissionActivity(tag: Int) {
         LuaService.INSTANCE!!.startActivity(
             Intent(LuaService.INSTANCE!!, PermissionRequestActivity::class.java)
-            .putExtra(PermissionRequestActivity.REQUEST_PERMISSION, tag)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(PermissionRequestActivity.REQUEST_PERMISSION, tag)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }
 
     @OptIn(ExperimentalTypeInference::class)
-    suspend fun<T> SequenceScope<CoroutineReturn<T>>.requestPermission(@BuilderInference then: suspend SequenceScope<CoroutineReturn<T>>.() -> Unit) {
+    suspend fun <T> SequenceScope<CoroutineReturn<T>>.requestPermission(@BuilderInference then: suspend SequenceScope<CoroutineReturn<T>>.() -> Unit) {
         val beginTime = System.currentTimeMillis()
         var isTimeout = false
 
-        if(!verifyPermission()) {
+        if (!verifyPermission()) {
             requestPermission()
             yieldUntil {
                 if (System.currentTimeMillis() - beginTime > 60000) {
@@ -42,7 +42,7 @@ interface PermissionProvider: CoroutineProvider, AndroidCoroutineInterop {
             }
         }
 
-        if(!isTimeout)
+        if (!isTimeout)
             then()
     }
 }
