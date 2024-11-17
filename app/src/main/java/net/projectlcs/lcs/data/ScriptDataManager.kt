@@ -173,7 +173,8 @@ object ScriptDataManager {
                             ref = ref,
                             repeat = false,
                         )
-                        task.isPaused = ref.isPaused
+                        task.isPaused = false
+                        ref.isPaused = false
                         ref.isRunning = true
                         ref.isValid = task.taskStatus != LuaEngine.TaskStatus.LOAD_ERROR
                         ref.lastModifyDate = LocalDateTime.now()

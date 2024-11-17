@@ -84,7 +84,7 @@ class LuaService : AbstractLuaService() {
                         ref.isPaused = true
                         ScriptDataManager.updateAllScript(ref, rerun = false)
                     }
-                    if (it.taskStatus == LuaEngine.TaskStatus.FINISHED) {
+                    if (it.taskStatus == LuaEngine.TaskStatus.FINISHED || it.taskStatus == LuaEngine.TaskStatus.RUNTIME_ERROR || it.taskStatus == LuaEngine.TaskStatus.LOAD_ERROR) {
                         val task = (it as AndroidLuaEngine.AndroidLuaTask).ref
                         task.isRunning = false
                         ScriptDataManager.updateAllScript(task, rerun = false)
