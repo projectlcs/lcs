@@ -1,7 +1,6 @@
 package net.projectlcs.lcs.functions.impl
 
 import android.os.Environment
-import me.ddayo.aris.CoroutineProvider.CoroutineReturn
 import me.ddayo.aris.LuaMultiReturn
 import me.ddayo.aris.luagen.LuaFunction
 import me.ddayo.aris.luagen.LuaProvider
@@ -10,7 +9,6 @@ import net.projectlcs.lcs.functions.PermissionProvider
 import net.projectlcs.lcs.functions.impl.Dialog.showYesNoDialog
 import net.projectlcs.lcs.permission.PermissionRequestActivity
 import java.io.File
-import kotlin.experimental.ExperimentalTypeInference
 
 @LuaProvider
 object FileManagement : PermissionProvider {
@@ -36,7 +34,7 @@ object FileManagement : PermissionProvider {
              * @param name the directory to iterate
              * @return files inside specified directory. you may use { files_in_dir("something") } to convert return value into list.
              */
-    fun iterateDirectory(name: String) = LuaMultiReturn(
+    fun getFileInDirectory(name: String) = LuaMultiReturn(
         *File(LuaService.INSTANCE!!.filesDir, name).listFiles()!!.map { it.absolutePath }
             .toTypedArray()
     )
@@ -144,12 +142,6 @@ object FileManagement : PermissionProvider {
                 breakTask(true)
             } else breakTask(false)
         }
-    }
-
-    @OptIn(ExperimentalTypeInference::class)
-    suspend fun <T> SequenceScope<CoroutineReturn<T>>.suspendTest(@BuilderInference then: suspend SequenceScope<CoroutineReturn<T>>.(result: Int) -> Unit) {
-        yieldUntil { true }
-        then(1)
     }
 
     @LuaFunction(name = "write_file_global")
