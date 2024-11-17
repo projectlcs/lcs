@@ -396,7 +396,6 @@ fun DetailsScreen(navController: NavController, itemId: String?) {
                         ScriptDataManager.updateAllScript(task!!, rerun = false)
                         LuaService.INSTANCE?.let {
                             val task = it.engine.tasks.firstOrNull { (it as AndroidLuaEngine.AndroidLuaTask).ref.id == task?.id }
-                            Log.d("a", task?.taskStatus.toString())
                             if(task?.taskStatus == LuaEngine.TaskStatus.FINISHED)
                                 task.restart()
                         }
