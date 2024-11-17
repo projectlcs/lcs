@@ -549,6 +549,7 @@ fun Details2Screen(navController: NavController, itemId: String?) {
                     CoroutineScope(Dispatchers.IO).launch {
                         ScriptDataManager.deleteAllScript(task!!)
                     }
+                    navController.navigateUp()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
