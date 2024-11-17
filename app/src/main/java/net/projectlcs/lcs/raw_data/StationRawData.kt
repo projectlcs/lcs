@@ -1,5 +1,7 @@
 package net.projectlcs.lcs.raw_data
 
+import com.google.gson.Gson
+
 object StationRawData {
     // data from https://minisp.tistory.com/20
     val data = """{
@@ -9444,4 +9446,14 @@ object StationRawData {
     }
   ]
 }"""
+
+    val gson = Gson()
+    val jsonObj = gson.fromJson(data, Object::class.java) as Map<*, *>
+    val inner = jsonObj["DATA"] as List<*>
+
+    data class StationData(val name: String, val lat: Double, val lng: Double)
+    val actualData = inner.associate {
+        val mp = it as Map<*, *>
+        mp["name"] as String to StationData(mp["name"] as String, mp["lat"] as Double, mp["lng"] as Double)
+    }
 }
