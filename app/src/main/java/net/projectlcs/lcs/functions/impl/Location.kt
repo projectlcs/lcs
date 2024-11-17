@@ -25,7 +25,10 @@ object Location: PermissionProvider, GMSHelper {
     }
 
     /**
-     * @return This function returns three values: latitude, longitude, accuracy
+     * This function returns current location regarding to GPS.
+     * This is optimized on battery so free to call it.
+     * You must take care about error because GPS is not 100% accurate.
+     * @return This function returns three values: latitude, longitude, error(in meters)
      */
     @SuppressLint("MissingPermission")
     @LuaFunction(name = "get_location")
@@ -36,7 +39,7 @@ object Location: PermissionProvider, GMSHelper {
                 val result = await(client.lastLocation)
 
                 if (result != null) {
-                    breakTask(result.latitude, result.longitude, result.accuracy)
+                    breakTask(result.latitude, result.longitude, result.accuracy * 2) // force increase error
                 } else {
                     Log.w("Location", "Cannot retrieve current location")
                     breakTask(0, 0, 0)
