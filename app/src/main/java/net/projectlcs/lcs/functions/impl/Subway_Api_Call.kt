@@ -9,8 +9,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
 import android.util.Log
+import androidx.compose.ui.unit.Constraints
+import com.google.gson.Gson
 import me.ddayo.aris.LuaMultiReturn
 import net.projectlcs.lcs.functions.AndroidCoroutineInterop
+import net.projectlcs.lcs.raw_data.StationRawData
 
 @LuaProvider
 object Subway_Api_Call : CoroutineProvider, AndroidCoroutineInterop {
@@ -24,6 +27,7 @@ object Subway_Api_Call : CoroutineProvider, AndroidCoroutineInterop {
     data class SubwayArrivalResponse(
         val realtimeArrivalList: List<SubwayArrival>
     )
+    data class Coordinates(val latitude: Double, val longitude: Double)
 
     interface SubwayService {
         @GET("{apiKey}/json/realtimeStationArrival/0/5/{stationName}")
@@ -78,5 +82,13 @@ object Subway_Api_Call : CoroutineProvider, AndroidCoroutineInterop {
 
         yieldUntil { flag }
         breakTask(ret.toString())
+    }
+    @LuaFunction(name = "getStationCoordinates")
+    fun getStationCoordinates(stationName: String):Coordinates{
+        if(StationRawData.actualData[stationName]==null){
+            Log.e("getStationCoordinates","actualData is null")
+            return Coordinates(Double.MIN_VALUE, Double.MIN_VALUE)
+        }
+        return Coordinates(StationRawData.actualData[stationName]!!.lat,StationRawData.actualData[stationName]!!.lng)
     }
 }
