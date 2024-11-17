@@ -27,7 +27,6 @@ object Subway_Api_Call : CoroutineProvider, AndroidCoroutineInterop {
     data class SubwayArrivalResponse(
         val realtimeArrivalList: List<SubwayArrival>
     )
-    data class Coordinates(val latitude: Double, val longitude: Double)
 
     interface SubwayService {
         @GET("{apiKey}/json/realtimeStationArrival/0/5/{stationName}")
@@ -84,11 +83,15 @@ object Subway_Api_Call : CoroutineProvider, AndroidCoroutineInterop {
         breakTask(ret.toString())
     }
     @LuaFunction(name = "getStationCoordinates")
-    fun getStationCoordinates(stationName: String):Coordinates{
+    /*
+    * @return This function returns three values: latitude, longitude
+    * missing value is -1000,-1000
+     */
+    fun getStationCoordinates(stationName: String):LuaMultiReturn{
         if(StationRawData.actualData[stationName]==null){
             Log.e("getStationCoordinates","actualData is null")
-            return Coordinates(Double.MIN_VALUE, Double.MIN_VALUE)
+            return LuaMultiReturn(-1000, -1000)
         }
-        return Coordinates(StationRawData.actualData[stationName]!!.lat,StationRawData.actualData[stationName]!!.lng)
+        return LuaMultiReturn(StationRawData.actualData[stationName]!!.lat,StationRawData.actualData[stationName]!!.lng)
     }
 }
