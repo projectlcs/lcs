@@ -220,7 +220,9 @@ fun OpenAIApiTest(navController: NavController) {
             if (isLoading) {
                 CircularProgressIndicator()
             } else {
-                Text(apiResponse)
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(apiResponse)
+                }
             }
         }
 
