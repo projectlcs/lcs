@@ -21,7 +21,7 @@ object FileManagement : PermissionProvider {
 
     @LuaFunction(name = "files_in_dir")
             /**
-             * Get files inside directory.
+             * Get absolute path of files inside directory.
              *
              * ```lua
              * local files = { files_in_dir("folder") }
@@ -32,7 +32,7 @@ object FileManagement : PermissionProvider {
              * This code prints file inside folder.
              *
              * @param name the directory to iterate
-             * @return files inside specified directory. you may use { files_in_dir("something") } to convert return value into list.
+             * @return absolute path of files inside specified directory. you may use { files_in_dir("something") } to convert return value into list.
              */
     fun getFileInDirectory(name: String) = LuaMultiReturn(
         *File(LuaService.INSTANCE!!.filesDir, name).listFiles()!!.map { it.absolutePath }
@@ -96,7 +96,7 @@ object FileManagement : PermissionProvider {
 
     @LuaFunction(name = "files_in_dir_global")
             /**
-             * Get files inside global(external) directory.
+             * Get absolute path of files inside global(external) directory.
              *
              * ```lua
              * local files = { files_in_dir_global("folder") }
@@ -107,7 +107,7 @@ object FileManagement : PermissionProvider {
              * This code prints file inside folder.
              *
              * @param name the directory to iterate
-             * @return files inside specified directory. you may use { files_in_dir_global("something") } to convert return value into list.
+             * @return absolute path of files inside specified directory. you may use { files_in_dir_global("something") } to convert return value into list.
              */
     fun getFileInDirectoryGlobal(name: String) = coroutine {
         requestPermission {
