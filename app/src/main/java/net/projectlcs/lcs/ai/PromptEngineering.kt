@@ -744,6 +744,6 @@ some station name must drop suffix 역 in korea. i.e. 선릉역 -> 선릉
  yield current loop. this must invoked frequently on infinity loop
  
 ## task_sleep(time)
- sleep current task for specified time in seconds. 
+ sleep current task for specified time in milliseconds. 
     """.trimIndent()
 }
