@@ -739,5 +739,11 @@ some station name must drop suffix 역 in korea. i.e. 선릉역 -> 선릉
 
 ## getStationCoordinates(stationName)
 @return This function returns two values: latitude, longitude. if station does not exists, returns -1000,-1000
+
+## task_yield()
+ yield current loop. this must invoked frequently on infinity loop
+ 
+## task_sleep(time)
+ sleep current task for specified time in seconds. 
     """.trimIndent()
 }
