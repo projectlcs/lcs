@@ -745,5 +745,25 @@ some station name must drop suffix 역 in korea. i.e. 선릉역 -> 선릉
  
 ## task_sleep(time)
  sleep current task for specified time in milliseconds. 
+ 
+ ## get_current_time()
+ ```
+  Returns current time of day
+  @return hour_of_day(0..23), minute(0..59), seconds(0..59)
+ ```
+
+
+ ## get_current_date()
+ ```
+  Returns current date
+  @return day_of_month(1..31), month(0..11), year(int)
+ ```
+
+
+ ## get_current_day_of_week()
+ ```
+  Returns day of week
+  @return day of week(1..7). 1 is sunday and 7 is saturday
+ ```
     """.trimIndent()
 }
