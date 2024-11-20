@@ -4,7 +4,9 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import me.ddayo.aris.luagen.LuaFunction
 import me.ddayo.aris.luagen.LuaProvider
 import net.projectlcs.lcs.LuaService
@@ -16,6 +18,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
+@SuppressLint("MissingPermission")
 @LuaProvider
 object Location: PermissionProvider, GMSHelper {
     override fun verifyPermission(): Boolean {
@@ -26,6 +29,20 @@ object Location: PermissionProvider, GMSHelper {
 
     override fun requestPermission() {
         startPermissionActivity(PermissionRequestActivity.REQUEST_LOCATION_PERMISSION)
+    }
+
+    private var latitude: Double = -1.0
+    private var longitude: Double = -1.0
+    private var accuracy = 0f
+
+    private val locationListener by lazy {
+        val client = LocationServices.getFusedLocationProviderClient(LuaService.INSTANCE!!)
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 30 * 1000).build()
+        client.requestLocationUpdates(locationRequest, { location ->
+            latitude = location.latitude
+            longitude = location.longitude
+            accuracy = location.accuracy * 2
+        }, LuaService.INSTANCE!!.mainLooper)
     }
 
     /**
@@ -39,8 +56,10 @@ object Location: PermissionProvider, GMSHelper {
     fun getLastLocation() = coroutine {
         requestPermission {
             try {
+                /*
                 val client = LocationServices.getFusedLocationProviderClient(LuaService.INSTANCE!!)
                 val result = await(client.lastLocation)
+                client.lastLocation
 
                 if (result != null) {
                     breakTask(result.latitude, result.longitude, result.accuracy * 2) // force increase error
@@ -48,6 +67,9 @@ object Location: PermissionProvider, GMSHelper {
                     Log.w("Location", "Cannot retrieve current location")
                     breakTask(0, 0, 0)
                 }
+                 */
+                locationListener
+                breakTask(latitude, longitude, accuracy)
             } catch(e: Exception) {
                 Log.e("Location", "Exception caught while processing getLastLocation function: $e")
                 breakTask(0, 0, 0)
