@@ -82,10 +82,10 @@ object Subway_Api_Call : CoroutineProvider, AndroidCoroutineInterop {
         yieldUntil { flag }
         breakTask(ret.toString())
     }
+
     @LuaFunction(name = "getStationCoordinates")
-    /*
-    * @return This function returns three values: latitude, longitude
-    * missing value is -1000,-1000
+    /**
+    * @return This function returns two values: latitude, longitude. if station does not exists, returns -1000,-1000
      */
     fun getStationCoordinates(stationName: String):LuaMultiReturn{
         if(StationRawData.actualData[stationName]==null){

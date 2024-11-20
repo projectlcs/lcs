@@ -729,5 +729,8 @@ Send toast message
 ## SubwayApiTest(stationName)
 some station name must drop suffix 역 in korea. i.e. 선릉역 -> 선릉
 @return next train info of provided station.
+
+## getStationCoordinates(stationName)
+@return This function returns two values: latitude, longitude. if station does not exists, returns -1000,-1000
     """.trimIndent()
 }
