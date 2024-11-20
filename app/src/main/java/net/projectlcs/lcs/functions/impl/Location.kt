@@ -11,6 +11,10 @@ import net.projectlcs.lcs.LuaService
 import net.projectlcs.lcs.functions.GMSHelper
 import net.projectlcs.lcs.functions.PermissionProvider
 import net.projectlcs.lcs.permission.PermissionRequestActivity
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 @LuaProvider
 object Location: PermissionProvider, GMSHelper {
@@ -49,5 +53,26 @@ object Location: PermissionProvider, GMSHelper {
                 breakTask(0, 0, 0)
             }
         }
+    }
+
+    @LuaFunction("location_delta_to_meter")
+            /**
+             * This function accepts two location value and calculates the delta of two locations in meter.
+             * @param latitude1 latitude of first location
+             * @param longitude1 longitude of first location
+             * @param latitude2 latitude of second location
+             * @param longitude2 longitude of second location
+             * @return delta of two location in meter value
+             */
+    fun locationDeltaToMeter(latitude1: Double, longitude1: Double, latitude2: Double, longitude2: Double): Double {
+        var R = 6378.137; // Radius of earth in KM
+        var dLat = latitude2 * Math.PI / 180 - latitude1 * Math.PI / 180;
+        var dLon = longitude2 * Math.PI / 180 - longitude1 * Math.PI / 180;
+        var a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(latitude1 * Math.PI / 180) * cos(latitude2 * Math.PI / 180) *
+                sin(dLon / 2) * sin(dLon / 2);
+        var c = 2 * atan2(sqrt(a), sqrt(1 - a));
+        var d = R * c;
+        return d * 1000; // meters
     }
 }

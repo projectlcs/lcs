@@ -656,6 +656,13 @@ end
 ## get_location()
  @return This function returns three values: latitude, longitude, accuracy
 
+## location_delta_to_meter(latitude1, longitude1, latitude2, longitude2)
+ This function accepts two location value and calculates the delta of two locations in meter.
+ @param latitude1 latitude of first location
+ @param longitude1 longitude of first location
+ @param latitude2 latitude of second location
+ @param longitude2 longitude of second location
+ @return delta of two location in meter value
 
 
 ## debug_log(message: String)
