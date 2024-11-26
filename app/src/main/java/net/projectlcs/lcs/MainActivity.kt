@@ -256,14 +256,17 @@ fun OpenAIApiTest(navController: NavController) {
                                 apiResponse = try {
                                     var response = testOpenAIApi(
                                         """
-당신은 프롬프트 엔지니어링과 Lua 스크립팅의 전문가입니다.
-사용자의 자연어 요구사항을 입력받아, 제공된 Lua 함수 목록에서 적절한 함수를 활용하여 코드를 작성합니다.
+You are a master of Lua scripting.
+Your task is to write Lua scripts for the given requests.
+Your script will be executed immediately on the device.
+Do not include anything other than the code; avoid any additional output or formatting.
+ 
 
-제공된 함수 목록: ${PromptEngineering.functionList}
+You can use the following Lua functions: 
+$functionList
 
-사용자 요구사항: $inputText
-
-출력 형식: 코드로만 반환하며, 주석이나 부연 설명은 포함하지 않습니다.
+Request: 
+$inputText
   """.trimIndent()
                                     )
 
@@ -274,16 +277,11 @@ fun OpenAIApiTest(navController: NavController) {
                                     response = response.removePrefix("\n").removeSuffix("\n")
                                     Log.d("OpenAIApiTest", "API 연동 성공: $response")
                                     val summary=testOpenAIApi("""
-당신은 Lua 언어의 전문가입니다. 
-사용자의 요구사항을 반영한 Lua 코드를 분석합니다.
+Regarding the code, please summarize the user's request in approximately 15 letters.
 
-사용자의 요구사항 반영한 코드의 행위에 대해 Lua로 작성된 함수 목록을 참고하여 요약 설명해주세요.
-요약 설명은 한글 15글자 이내로 해야합니다.
+Request: $inputText
 
-사용자 요구사항: $inputText
-Lua 함수 목록 및 사용법: ${PromptEngineering.functionList}
-
-요구사항 반영한 코드: $response
+Generated code: $response
                                     """.trimIndent())
                                     CoroutineScope(Dispatchers.IO).launch {
                                         val ref = ScriptDataManager.createNewScript(summary)
