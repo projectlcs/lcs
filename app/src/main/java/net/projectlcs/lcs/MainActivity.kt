@@ -3,7 +3,6 @@ package net.projectlcs.lcs
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -253,48 +252,7 @@ fun OpenAIApiTest(navController: NavController) {
                             keyboardController?.hide()
                             coroutineScope.launch {
                                 isLoading = true
-                                apiResponse = try {
-                                    var response = testOpenAIApi(
-                                        """
-You are a master of Lua scripting.
-Your task is to write Lua scripts for the given requests.
-Your script will be executed immediately on the device.
-Do not include anything other than the code; avoid any additional output or formatting.
- 
-
-You can use the following Lua functions: 
-$functionList
-
-Request: 
-$inputText
-  """.trimIndent()
-                                    )
-
-                                    response = response.removePrefix("```lua")
-
-                                    // Trim the "```" from both ends
-                                    response = response.removePrefix("```").removeSuffix("```")
-                                    response = response.removePrefix("\n").removeSuffix("\n")
-                                    Log.d("OpenAIApiTest", "API 연동 성공: $response")
-                                    val summary=testOpenAIApi("""
-Regarding the code, please summarize the user's request in approximately 15 letters.
-
-Request: $inputText
-
-Generated code: $response
-                                    """.trimIndent())
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        val ref = ScriptDataManager.createNewScript(summary)
-                                        ref.code = response
-                                        ScriptDataManager.updateAllScript(ref)
-                                        LuaService.INSTANCE?.apply {
-                                            (engine.tasks.firstOrNull { (it as? AndroidLuaEngine.AndroidLuaTask)?.ref?.id == ref.id } as? AndroidLuaEngine.AndroidLuaTask)?.isRunning = true
-                                        }
-                                    }
-                                    "API 연동 성공: $response"
-                                } catch (e: Exception) {
-                                    "API 연동 실패: ${e.message}"
-                                }
+                                apiResponse = PromptEngineering.retrieveCode(inputText)
                                 isLoading = false
                             }
                         },
@@ -762,49 +720,6 @@ fun ManageDeletedScript(navController: NavController) {
         }
     }
 }
-
-suspend fun testOpenAIApi(prompt: String): String {
-    val retrofit = Retrofit.Builder()
-        .baseUrl("https://api.openai.com/v1/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-
-    val service = retrofit.create(OpenAIService::class.java)
-    val request = ChatCompletionRequest(
-        model = "gpt-4o",
-        messages = listOf(ChatMessage(role = "user", content = prompt))
-    )
-    // 여기에 자신의 API 키를 입력하세요
-    val apiKey = "sk-proj-aPmdKj1RPjf0adKxcHoAT3BlbkFJR8cSXBgsLOtz3dgQ0HGB"
-    val response = service.createChatCompletion("Bearer $apiKey", request)
-    return response.choices.firstOrNull()?.message?.content ?: "No response"
-}
-
-interface OpenAIService {
-    @POST("chat/completions")
-    suspend fun createChatCompletion(
-        @Header("Authorization") authorization: String,
-        @Body request: ChatCompletionRequest
-    ): ChatCompletionResponse
-}
-
-data class ChatCompletionRequest(
-    val model: String,
-    val messages: List<ChatMessage>
-)
-
-data class ChatCompletionResponse(
-    val choices: List<ChatChoice>
-)
-
-data class ChatChoice(
-    val message: ChatMessage
-)
-
-data class ChatMessage(
-    val role: String,
-    val content: String
-)
 
 class ScriptViewModel : ViewModel() {
     private val _scripts = MutableStateFlow<List<ScriptReference>>(emptyList())

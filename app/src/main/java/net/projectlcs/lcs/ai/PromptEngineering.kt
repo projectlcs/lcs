@@ -1,6 +1,25 @@
 package net.projectlcs.lcs.ai
 
+import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import net.projectlcs.lcs.AndroidLuaEngine
+import net.projectlcs.lcs.LuaService
+import net.projectlcs.lcs.data.ScriptDataManager
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
+import retrofit2.http.Header
+import retrofit2.http.POST
+
 object PromptEngineering {
+    // The Chat GPT api key. Following key is invalid(disabled)
+    private val apiKey = "sk-proj-aPmdKj1RPjf0adKxcHoAT3BlbkFJR8cSXBgsLOtz3dgQ0HGB"
+
+    // Default GPT model is gpt-4o. You may change this.
+    private val model = "gpt-4o"
+
     val functionList = """
 ## task_yield()
  yield current loop. this must invoked frequently on infinity loop
@@ -289,8 +308,100 @@ object PromptEngineering {
 
  @return current datetime from 1/1/1970
 ```
-
-
- 
     """.trimIndent()
+
+
+    /**
+     * Get code from GPT
+     * @param request the user request
+     */
+    suspend fun retrieveCode(request: String) = try {
+        var response = testOpenAIApi(
+            """
+You are a master of Lua scripting.
+Your task is to write Lua scripts for the given requests.
+Your script will be executed immediately on the device.
+Do not include anything other than the code; avoid any additional output or formatting.
+ 
+
+You can use the following Lua functions: 
+$functionList
+
+Request: 
+$request
+  """.trimIndent()
+        )
+
+        response = response.removePrefix("```lua")
+
+        // Trim the "```" from both ends
+        response = response.removePrefix("```").removeSuffix("```")
+        response = response.removePrefix("\n").removeSuffix("\n")
+        Log.d("OpenAIApiTest", "API 연동 성공: $response")
+        val summary = testOpenAIApi(
+            """
+Regarding the code, please summarize the user's request in approximately 15 letters.
+
+Request: $request
+
+Generated code: $response
+                                    """.trimIndent()
+        )
+        CoroutineScope(Dispatchers.IO).launch {
+            val ref = ScriptDataManager.createNewScript(summary)
+            ref.code = response
+            ScriptDataManager.updateAllScript(ref)
+            LuaService.INSTANCE?.apply {
+                (engine.tasks.firstOrNull { (it as? AndroidLuaEngine.AndroidLuaTask)?.ref?.id == ref.id } as? AndroidLuaEngine.AndroidLuaTask)?.isRunning =
+                    true
+            }
+        }
+        "API 연동 성공: $response"
+    } catch (e: Exception) {
+        "API 연동 실패: ${e.message}"
+    }
+
+    val retrofit = Retrofit.Builder()
+        .baseUrl("https://api.openai.com/v1/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    val service = retrofit.create(OpenAIService::class.java)
+
+    suspend fun testOpenAIApi(prompt: String): String {
+        val request = ChatCompletionRequest(
+            model = model,
+            messages = listOf(ChatMessage(role = "user", content = prompt))
+        )
+
+        val response = service.createChatCompletion("Bearer $apiKey", request)
+        return response.choices.firstOrNull()?.message?.content ?: "No response"
+    }
+
+
+    interface OpenAIService {
+        @POST("chat/completions")
+        suspend fun createChatCompletion(
+            @Header("Authorization") authorization: String,
+            @Body request: ChatCompletionRequest
+        ): ChatCompletionResponse
+    }
+
+    data class ChatCompletionRequest(
+        val model: String,
+        val messages: List<ChatMessage>
+    )
+
+    data class ChatCompletionResponse(
+        val choices: List<ChatChoice>
+    )
+
+    data class ChatChoice(
+        val message: ChatMessage
+    )
+
+    data class ChatMessage(
+        val role: String,
+        val content: String
+    )
 }
