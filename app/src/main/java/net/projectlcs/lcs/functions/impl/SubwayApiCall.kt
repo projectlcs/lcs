@@ -9,14 +9,15 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
 import android.util.Log
-import androidx.compose.ui.unit.Constraints
-import com.google.gson.Gson
 import me.ddayo.aris.LuaMultiReturn
 import net.projectlcs.lcs.functions.AndroidCoroutineInterop
 import net.projectlcs.lcs.raw_data.StationRawData
 
 @LuaProvider
-object Subway_Api_Call : CoroutineProvider, AndroidCoroutineInterop {
+/**
+ * This only works for South Korea's subway system
+ */
+object SubwayApiCall : CoroutineProvider, AndroidCoroutineInterop {
     data class SubwayArrival(
         val trainLineNm: String,  // 열차 노선 이름
         val arvlMsg2: String,     // 도착 메시지
