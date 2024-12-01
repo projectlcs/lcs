@@ -14,12 +14,6 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 
 object PromptEngineering {
-    // The Chat GPT api key. Following key is invalid(disabled)
-    private val apiKey = "sk-proj-aPmdKj1RPjf0adKxcHoAT3BlbkFJR8cSXBgsLOtz3dgQ0HGB"
-
-    // Default GPT model is gpt-4o. You may change this.
-    private val model = "gpt-4o"
-
     val functionList = """
 ## task_yield()
  yield current loop. this must invoked frequently on infinity loop
@@ -370,11 +364,11 @@ Generated code: $response
 
     suspend fun testOpenAIApi(prompt: String): String {
         val request = ChatCompletionRequest(
-            model = model,
+            model = GPTConfig.model,
             messages = listOf(ChatMessage(role = "user", content = prompt))
         )
 
-        val response = service.createChatCompletion("Bearer $apiKey", request)
+        val response = service.createChatCompletion("Bearer ${GPTConfig.apiKey}", request)
         return response.choices.firstOrNull()?.message?.content ?: "No response"
     }
 
