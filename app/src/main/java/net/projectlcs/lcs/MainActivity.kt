@@ -174,7 +174,7 @@ fun OpenAIApiTest(navController: NavController) {
                         ),
                         modifier = Modifier.width(200.dp)
                     ) {
-                        Text(text = "스크립트 관리")
+                        Text(text = "Manage scripts")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
@@ -185,7 +185,7 @@ fun OpenAIApiTest(navController: NavController) {
                         ),
                         modifier = Modifier.width(200.dp)
                     ) {
-                        Text(text = "템플릿 더보기")
+                        Text(text = "Templates")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
@@ -196,7 +196,7 @@ fun OpenAIApiTest(navController: NavController) {
                         ),
                         modifier = Modifier.width(200.dp)
                     ) {
-                        Text(text = "삭제된 스크립트 관리")
+                        Text(text = "Finished scripts")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
@@ -240,7 +240,7 @@ fun OpenAIApiTest(navController: NavController) {
                 TextField(
                     value = inputText,
                     onValueChange = { inputText = it },
-                    label = { Text("요구사항을 입력하세요") },
+                    label = { Text("Input command") },
                     modifier = Modifier.weight(1f)
                         .padding(end=8.dp)
                 )
@@ -660,6 +660,7 @@ fun ScriptManagement(navController: NavController) {
 
 @Composable
 fun Screen2(navController: NavController) {
+    /*
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -676,6 +677,9 @@ fun Screen2(navController: NavController) {
             Text("메인 화면으로 돌아가기")
         }
     }
+
+     */
+    Text("WIP")
 }
 
 @Composable
