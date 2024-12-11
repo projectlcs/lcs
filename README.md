@@ -106,7 +106,7 @@ If you submit a PR related to these tasks, I’ll be thrilled!
 - Email: dayo@ajou.ac.kr
 
 ### UI and Functions: **Jinhyeong Seo (@seojinhyeong99)**
-
+- Email: sjh040514@gmail.com
 ### AI Development: **Minwoo Nam (@brainVRG)**
 
 - Email: woo95822@gnu.ac.kr  
